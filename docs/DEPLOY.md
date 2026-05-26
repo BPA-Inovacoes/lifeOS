@@ -37,15 +37,18 @@ npm start
 
 ## Web (Vercel)
 
-1. Root: `web/`
-2. Build: `npm run build` · Output: `dist`
-3. Variável:
+Opção A: definir **Root Directory** como `web/`  
+Opção B: apontar a Vercel para a raiz do repo e usar o `vercel.json` da raiz.
+
+Build: `npm run build` · Output: `dist` (ou `web/dist` se o projecto estiver na raiz)
+
+Variável:
 
 | Variável | Valor |
 |----------|-------|
-| `VITE_API_URL` | URL pública da API (ex. `https://api.teu-dominio.railway.app`) |
+| `VITE_API_BASE_URL` | URL pública da API (ex. `https://api.teu-dominio.railway.app`) |
 
-4. SPA: ficheiro `web/vercel.json` com rewrite para `index.html`.
+SPA: `vercel.json` com rewrite para `index.html`.
 
 ## CORS
 
@@ -62,6 +65,6 @@ Com `SEED_DEMO=false` não cria linhas de exemplo nem histórico XP demo.
 ## Checklist pós-deploy
 
 - [ ] Login e criação de workspace (pode demorar ~10s na primeira vez — timeout Prisma aumentado)
-- [ ] `VITE_API_URL` correcto no build Vercel
+- [ ] `VITE_API_BASE_URL` correcto no build Vercel
 - [ ] HTTPS em ambos os lados
 - [ ] Migrates aplicadas (`prisma migrate deploy`)
