@@ -42,13 +42,14 @@ Opção B: apontar a Vercel para a raiz do repo e usar o `vercel.json` da raiz.
 
 Build: `npm run build` · Output: `dist` (ou `web/dist` se o projecto estiver na raiz)
 
-Variável:
+Variáveis:
 
 | Variável | Valor |
 |----------|-------|
-| `VITE_API_BASE_URL` | URL pública da API (ex. `https://api.teu-dominio.railway.app`) |
+| `API_BASE_URL` | URL pública da API para o proxy `/api` da Vercel |
+| `VITE_API_BASE_URL` | opcional; se definires, o frontend chama a API directamente |
 
-SPA: `vercel.json` com rewrite para `index.html`.
+SPA: `vercel.json` com rewrite para `index.html`, preservando `/api/*` para o proxy serverless.
 
 ## CORS
 
@@ -65,6 +66,7 @@ Com `SEED_DEMO=false` não cria linhas de exemplo nem histórico XP demo.
 ## Checklist pós-deploy
 
 - [ ] Login e criação de workspace (pode demorar ~10s na primeira vez — timeout Prisma aumentado)
-- [ ] `VITE_API_BASE_URL` correcto no build Vercel
+- [ ] `API_BASE_URL` configurado na Vercel
+- [ ] ou `VITE_API_BASE_URL` configurado se preferires ligação directa
 - [ ] HTTPS em ambos os lados
 - [ ] Migrates aplicadas (`prisma migrate deploy`)
