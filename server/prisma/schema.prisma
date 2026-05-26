@@ -1,0 +1,431 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model User {
+  id               String               @id @default(cuid())
+  email            String               @unique
+  passwordHash     String
+  name             String?
+  role             UserRole             @default(USER)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  passwordResets   PasswordResetToken[]
+  workspacesOwned  Workspace[]          @relation("WorkspaceOwner")
+  workspaceMembers WorkspaceMember[]
+  pagesCreated     Page[]               @relation("PageCreator")
+  pointsEvents     PointsEvent[]
+  gameProfile      UserGameProfile?
+  gameAchievements UserAchievement[]
+  gameActivities   GameActivityLog[]
+  activityEvents   ActivityEvent[]
+  userAttributes   UserAttribute[]
+  dailyMissions    DailyMissionProgress[]
+  prestigeResets   PrestigeReset[]
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// ─── Workspace ────────────────────────────────────────────────────────────
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model Workspace {
+  id          String            @id @default(cuid())
+  name        String
+  slug        String
+  icon        String?
+  description String?
+  ownerId     String
+  owner       User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     WorkspaceMember[]
+  pages       Page[]
+  databases   Database[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([ownerId, slug])
+  @@index([ownerId])
+}
+
+model WorkspaceMember {
+  id          String        @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        WorkspaceRole @default(MEMBER)
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+}
+
+// ─── Pages & Blocks ─────────────────────────────────────────────────────────
+
+model Page {
+  id          String   @id @default(cuid())
+  workspaceId String
+  parentId    String?
+  title       String   @default("Sem título")
+  icon        String?
+  sortOrder   Int      @default(0)
+  isArchived  Boolean  @default(false)
+  createdById String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  parent      Page?    @relation("PageTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Page[]   @relation("PageTree")
+  creator     User     @relation("PageCreator", fields: [createdById], references: [id])
+  blocks      Block[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([parentId])
+}
+
+enum BlockType {
+  PARAGRAPH
+  HEADING_1
+  HEADING_2
+  HEADING_3
+  CHECKLIST
+  TODO
+  QUOTE
+  CALLOUT
+  CODE
+  IMAGE
+  DIVIDER
+  TOGGLE
+  DATABASE_EMBED
+  KANBAN_EMBED
+  CALENDAR_EMBED
+}
+
+model Block {
+  id        String    @id @default(cuid())
+  pageId    String
+  parentId  String?
+  type      BlockType @default(PARAGRAPH)
+  content   Json      @default("{}")
+  sortOrder Int       @default(0)
+  page      Page      @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  parent    Block?    @relation("BlockTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Block[]   @relation("BlockTree")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([pageId])
+  @@index([parentId])
+}
+
+// ─── Database engine ────────────────────────────────────────────────────────
+
+enum DatabaseTemplate {
+  CUSTOM
+  TASKS
+  HABITS
+  GOALS
+  STUDIES
+  NOTES
+  PROJECTS
+}
+
+enum DatabasePropertyType {
+  TEXT
+  NUMBER
+  SELECT
+  MULTI_SELECT
+  STATUS
+  CHECKBOX
+  RELATION
+  DATE
+  EMAIL
+  URL
+  FORMULA
+}
+
+enum DatabaseViewType {
+  TABLE
+  BOARD
+  CALENDAR
+  LIST
+}
+
+model Database {
+  id          String             @id @default(cuid())
+  workspaceId String
+  name        String
+  icon        String?
+  template    DatabaseTemplate   @default(CUSTOM)
+  workspace   Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  properties  DatabaseProperty[]
+  views       DatabaseView[]
+  rows        DatabaseRow[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([workspaceId])
+}
+
+model DatabaseProperty {
+  id         String               @id @default(cuid())
+  databaseId String
+  name       String
+  type       DatabasePropertyType
+  config     Json                 @default("{}")
+  sortOrder  Int                  @default(0)
+  database   Database             @relation(fields: [databaseId], references: [id], onDelete: Cascade)
+
+  @@unique([databaseId, name])
+  @@index([databaseId])
+}
+
+model DatabaseView {
+  id         String           @id @default(cuid())
+  databaseId String
+  name       String
+  type       DatabaseViewType @default(TABLE)
+  config     Json             @default("{}")
+  sortOrder  Int              @default(0)
+  database   Database         @relation(fields: [databaseId], references: [id], onDelete: Cascade)
+
+  @@index([databaseId])
+}
+
+model DatabaseRow {
+  id         String   @id @default(cuid())
+  databaseId String
+  properties Json     @default("{}")
+  sortOrder  Int      @default(0)
+  database   Database @relation(fields: [databaseId], references: [id], onDelete: Cascade)
+  pointsEvents PointsEvent[]
+  activityEvents ActivityEvent[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([databaseId])
+}
+
+// ─── Gamificação (XP + streaks) ─────────────────────────────────────────────
+
+enum PointsEventSource {
+  TASK
+  HABIT
+  GOAL
+  STUDY
+}
+
+model PointsEvent {
+  id          String            @id @default(cuid())
+  userId      String
+  workspaceId String
+  rowId       String
+  source      PointsEventSource
+  date        DateTime          @db.Date
+  points      Int
+  createdAt   DateTime          @default(now())
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  row         DatabaseRow       @relation(fields: [rowId], references: [id], onDelete: Cascade)
+
+  @@unique([rowId, date])
+  @@index([userId, date])
+  @@index([workspaceId, date])
+}
+
+// ─── Game Mode (camada opcional de gamificação) ─────────────────────────────
+
+enum AchievementRarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+enum AchievementCategory {
+  STREAK
+  TASKS
+  STUDY
+  GOALS
+  CONSISTENCY
+  DEEP_WORK
+  LEVEL
+  PRESTIGE
+}
+
+enum GamePhase {
+  AWAKENING
+  MOMENTUM
+  EXECUTION
+  MASTERY
+  EVOLUTION
+  TRANSCENDENCE
+  GOD_MODE
+}
+
+enum ActivityEventType {
+  TASK_COMPLETED
+  HABIT_COMPLETED
+  STUDY_SESSION_COMPLETED
+  GOAL_COMPLETED
+  WEEK_PERFECT
+  STREAK_UPDATED
+  LEVEL_UP
+  ATTRIBUTE_INCREASED
+  ACHIEVEMENT_UNLOCKED
+  MISSION_COMPLETED
+  PRESTIGE_RESET
+}
+
+model UserGameProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  gameModeEnabled  Boolean  @default(false)
+  totalXp          Int      @default(0)
+  lifetimeXp       Int      @default(0)
+  level            Int      @default(1)
+  rankTitle        String   @default("Wanderer")
+  phase            GamePhase @default(AWAKENING)
+  prestigeLevel    Int      @default(0)
+  ascensionCount   Int      @default(0)
+  avatarIcon       String   @default("user")
+  currentStreak    Int      @default(0)
+  tasksCompleted   Int      @default(0)
+  habitsCompleted  Int      @default(0)
+  studyMinutes     Int      @default(0)
+  goalsCompleted   Int      @default(0)
+  activeDays       Int      @default(0)
+  deepWorkDays     Int      @default(0)
+  perfectWeeks     Int      @default(0)
+  lastActiveDate   DateTime? @db.Date
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AchievementDefinition {
+  id          String            @id
+  name        String
+  description String
+  icon        String
+  rarity      AchievementRarity @default(COMMON)
+  category    AchievementCategory @default(CONSISTENCY)
+  xpReward    Int               @default(0)
+  criteriaKey String
+  criteriaValue Int             @default(1)
+  sortOrder   Int               @default(0)
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+  id            String                @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime              @default(now())
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   AchievementDefinition @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+}
+
+model UserAttribute {
+  id     String @id @default(cuid())
+  userId String
+  key    String
+  value  Float  @default(0)
+  lastDelta Float @default(0)
+  updatedAt DateTime @updatedAt
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+  @@index([userId])
+}
+
+model GameActivityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  message   String
+  xpDelta   Int      @default(0)
+  meta      Json     @default("{}")
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model ActivityEvent {
+  id         String            @id @default(cuid())
+  userId     String
+  workspaceId String
+  rowId      String?
+  type       ActivityEventType
+  source     PointsEventSource?
+  eventDate  DateTime          @db.Date
+  xpDelta    Int               @default(0)
+  payload    Json              @default("{}")
+  dedupeKey  String?           @unique
+  createdAt  DateTime          @default(now())
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  row        DatabaseRow?      @relation(fields: [rowId], references: [id], onDelete: Cascade)
+
+  @@index([userId, eventDate])
+  @@index([workspaceId, eventDate])
+  @@index([type, createdAt])
+}
+
+model DailyMissionProgress {
+  id         String   @id @default(cuid())
+  userId     String
+  missionKey String
+  date       DateTime @db.Date
+  progress   Int      @default(0)
+  target     Int
+  completed  Boolean  @default(false)
+  xpReward   Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, missionKey, date])
+  @@index([userId, date])
+}
+
+model PrestigeReset {
+  id               String   @id @default(cuid())
+  userId           String
+  prestigeLevel    Int
+  previousLevel    Int
+  previousXp       Int
+  lifetimeXp       Int
+  createdAt        DateTime @default(now())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}

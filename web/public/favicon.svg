@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="LifeOS">
+  <rect width="32" height="32" rx="8" fill="#10b981"/>
+  <path
+    d="M16 7 18.4 14.2 26 16 18.4 17.8 16 25 13.6 17.8 6 16 13.6 14.2Z"
+    fill="#09090b"
+  />
+  <path
+    d="M16 10.2 17.2 14.5 21.2 16 17.2 17.5 16 21.8 14.8 17.5 10.8 16 14.8 14.5Z"
+    fill="#ecfdf5"
+  />
+</svg>

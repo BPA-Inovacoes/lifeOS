@@ -1,0 +1,10 @@
+export { DashboardHeader } from "@/modules/dashboard/components/DashboardHeader";
+export { QuickInbox } from "@/modules/dashboard/components/QuickInbox";
+export { FocusNow } from "@/modules/dashboard/components/FocusNow";
+export { XpWeekChart } from "@/modules/dashboard/components/XpWeekChart";
+export { HabitStreaks } from "@/modules/dashboard/components/HabitStreaks";
+export { DashboardSkeleton } from "@/modules/dashboard/components/DashboardSkeleton";
+export { FocusCards } from "@/modules/dashboard/components/FocusCards";
+export { MetricCard } from "@/modules/dashboard/components/MetricCard";
+export { TodayLists } from "@/modules/dashboard/components/TodayLists";
+export { WorkspaceGrid } from "@/modules/dashboard/components/WorkspaceGrid";

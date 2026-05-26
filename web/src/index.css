@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+    --card: 240 6% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 6% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 5% 16%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 5% 16%;
+    --muted-foreground: 240 5% 55%;
+    --accent: 240 5% 14%;
+    --accent-foreground: 0 0% 98%;
+    --border: 240 5% 22%;
+    --input: 240 5% 22%;
+    --ring: 160 84% 39%;
+    --radius: 0;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(160 45% 32% / 0.85) hsl(240 6% 11%);
+  }
+
+  *::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: hsl(240 6% 11%);
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: hsl(160 38% 28%);
+    border: 2px solid hsl(240 6% 11%);
+    border-radius: 0;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: hsl(160 70% 38%);
+  }
+
+  *::-webkit-scrollbar-thumb:active {
+    background: hsl(160 84% 42%);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: hsl(240 6% 11%);
+  }
+
+  html {
+    @apply min-h-screen;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply min-h-screen bg-background font-sans text-foreground antialiased;
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+}
+
+@layer components {
+  /** Scroll fino em painéis compactos (paleta, índice, dropdowns). */
+  .lifeos-scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(160 50% 35% / 0.7) hsl(240 6% 9%);
+  }
+
+  .lifeos-scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .lifeos-scrollbar-thin::-webkit-scrollbar-thumb {
+    border-width: 1px;
+  }
+
+  .lifeos-date-input::-webkit-calendar-picker-indicator {
+    margin-left: 0.625rem;
+    margin-right: 0.125rem;
+    padding: 2px;
+    cursor: pointer;
+    opacity: 1;
+    /* emerald-500 / emerald-600 */
+    filter: brightness(0) saturate(100%) invert(52%) sepia(93%) saturate(640%)
+      hue-rotate(122deg) brightness(95%) contrast(92%);
+  }
+
+  .lifeos-date-input::-webkit-calendar-picker-indicator:hover {
+    filter: brightness(0) saturate(100%) invert(58%) sepia(93%) saturate(720%)
+      hue-rotate(122deg) brightness(105%) contrast(92%);
+  }
+
+  .lifeos-modal-enter {
+    animation: lifeos-modal-in 180ms ease-out forwards;
+  }
+
+  @keyframes lifeos-modal-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .lifeos-xp-pop {
+    animation: lifeos-xp-pop 600ms ease-out forwards;
+  }
+
+  @keyframes lifeos-xp-pop {
+    0% {
+      opacity: 0;
+      transform: translateY(8px) scale(0.95);
+    }
+    30% {
+      opacity: 1;
+      transform: translateY(-4px) scale(1.02);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-20px) scale(1);
+    }
+  }
+
+  .lifeos-level-up {
+    animation: lifeos-level-up 900ms ease-out forwards;
+  }
+
+  @keyframes lifeos-level-up {
+    0% {
+      opacity: 0;
+      transform: scale(0.9);
+      filter: brightness(1);
+    }
+    40% {
+      opacity: 1;
+      transform: scale(1.05);
+      filter: brightness(1.3);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+      filter: brightness(1);
+    }
+  }
+}

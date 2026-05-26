@@ -1,0 +1,14 @@
+logs
+*.log
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.*.local
+.DS_Store
+*.tsbuildinfo
+.vite
+test-results
+playwright-report
+playwright/.cache
