@@ -26,7 +26,7 @@ export function SlashableText({
   if (!editable) {
     return (
       <Tag className={className}>
-        {text || <span className="text-zinc-600">Vazio</span>}
+        {text || <span className="text-muted-foreground">Vazio</span>}
       </Tag>
     );
   }

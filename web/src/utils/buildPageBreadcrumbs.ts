@@ -1,4 +1,5 @@
 import { UI_DASHBOARD } from "@/constants/uiLabels";
+import { paths } from "@/routes/paths";
 import type { PageSummary } from "@/types/workspace";
 
 export type BreadcrumbItem = { label: string; to?: string };
@@ -25,15 +26,15 @@ export function buildPageBreadcrumbItems(
   }
 
   const items: BreadcrumbItem[] = [
-    { label: UI_DASHBOARD, to: "/dashboard" },
-    { label: workspaceName, to: `/w/${workspaceId}` },
+    { label: UI_DASHBOARD, to: paths.focus.dashboard },
+    { label: workspaceName, to: paths.focus.workspace(workspaceId) },
   ];
 
   chain.forEach((page, index) => {
     const isLast = index === chain.length - 1;
     items.push({
       label: page.title,
-      to: isLast ? undefined : `/w/${workspaceId}/p/${page.id}`,
+      to: isLast ? undefined : paths.focus.page(workspaceId, page.id),
     });
   });
 

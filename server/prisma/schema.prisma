@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ─── Auth ───────────────────────────────────────────────────────────────────
@@ -19,6 +20,8 @@ model User {
   email            String               @unique
   passwordHash     String
   name             String?
+  /// Utilizador autorizou envio de agregados a um LLM externo (Case).
+  caseLlmOptIn     Boolean              @default(false)
   role             UserRole             @default(USER)
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
@@ -34,6 +37,41 @@ model User {
   userAttributes   UserAttribute[]
   dailyMissions    DailyMissionProgress[]
   prestigeResets   PrestigeReset[]
+  shopItems        UserShopItem[]
+  financialProfile FinancialProfile?
+  financeAccounts  FinanceAccount[]
+  financeMovements       FinanceMovement[]
+  financeMovementRollups FinanceMovementRollup[]
+  financeReviews        FinanceWeeklyReview[]
+  financeMethodProgress UserMethodProgress[]
+  financeCategoryBudgets FinanceCategoryBudget[]
+  financeAccountGoals   FinanceAccountGoal[]
+  caseConversations     CaseConversation[]
+}
+
+model CaseConversation {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mode      String        @default("finance")
+  title     String?
+  messages  CaseMessage[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([userId, updatedAt])
+}
+
+model CaseMessage {
+  id             String           @id @default(cuid())
+  conversationId String
+  conversation   CaseConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String
+  content        String
+  source         String           @default("user")
+  createdAt      DateTime         @default(now())
+
+  @@index([conversationId, createdAt])
 }
 
 model PasswordResetToken {
@@ -156,6 +194,7 @@ enum DatabaseTemplate {
   STUDIES
   NOTES
   PROJECTS
+  CLIENTS
 }
 
 enum DatabasePropertyType {
@@ -241,6 +280,7 @@ enum PointsEventSource {
   HABIT
   GOAL
   STUDY
+  CLIENT
 }
 
 model PointsEvent {
@@ -295,6 +335,7 @@ enum ActivityEventType {
   HABIT_COMPLETED
   STUDY_SESSION_COMPLETED
   GOAL_COMPLETED
+  CLIENT_CLOSED
   WEEK_PERFECT
   STREAK_UPDATED
   LEVEL_UP
@@ -302,6 +343,18 @@ enum ActivityEventType {
   ACHIEVEMENT_UNLOCKED
   MISSION_COMPLETED
   PRESTIGE_RESET
+  FINANCE_METHOD_STEP
+  FINANCE_REVIEW_COMPLETED
+  FINANCE_GOAL_REACHED
+  FINANCE_BUDGET_RESPECTED
+  FINANCE_REVIEW_STREAK
+  FINANCE_METHOD_COMPLETED
+}
+
+enum MissionPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
 }
 
 model UserGameProfile {
@@ -324,10 +377,46 @@ model UserGameProfile {
   activeDays       Int      @default(0)
   deepWorkDays     Int      @default(0)
   perfectWeeks     Int      @default(0)
+  lifeCoins        Int      @default(0)
+  lifetimeCoins    Int      @default(0)
+  displayTitle     String?
   lastActiveDate   DateTime? @db.Date
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum ShopItemType {
+  TITLE
+  AVATAR
+}
+
+model ShopItemDefinition {
+  id                    String            @id
+  type                  ShopItemType
+  label                 String
+  description           String
+  icon                  String
+  price                 Int
+  rarity                AchievementRarity @default(COMMON)
+  payload               String
+  minLevel              Int               @default(1)
+  minPrestige           Int               @default(0)
+  requiresAchievementId String?
+  sortOrder             Int               @default(0)
+  purchases             UserShopItem[]
+}
+
+model UserShopItem {
+  id          String             @id @default(cuid())
+  userId      String
+  itemId      String
+  purchasedAt DateTime           @default(now())
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item        ShopItemDefinition @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+  @@index([userId])
 }
 
 model AchievementDefinition {
@@ -403,18 +492,20 @@ model ActivityEvent {
 }
 
 model DailyMissionProgress {
-  id         String   @id @default(cuid())
+  id         String        @id @default(cuid())
   userId     String
   missionKey String
-  date       DateTime @db.Date
-  progress   Int      @default(0)
+  period     MissionPeriod @default(DAILY)
+  date       DateTime      @db.Date
+  progress   Int           @default(0)
   target     Int
-  completed  Boolean  @default(false)
+  completed  Boolean       @default(false)
   xpReward   Int
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, missionKey, date])
+  @@unique([userId, missionKey, date, period])
   @@index([userId, date])
+  @@index([userId, period, date])
 }
 
 model PrestigeReset {
@@ -428,4 +519,193 @@ model PrestigeReset {
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+// ─── Modo Finanças (F1.0) ───────────────────────────────────────────────────
+
+enum FinanceAccountType {
+  CHECKING
+  SAVINGS
+  CASH
+  CREDIT_CARD
+  INVESTMENT
+  LOAN
+  OTHER
+}
+
+enum FinanceMovementType {
+  EXPENSE
+  INCOME
+  TRANSFER
+  ADJUSTMENT
+}
+
+enum FinanceCategoryKind {
+  EXPENSE
+  INCOME
+}
+
+model FinancialProfile {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currency                String   @default("AOA")
+  activeMethodId          String?
+  methodStepIndex         Int      @default(0)
+  onboardingDone            Boolean   @default(false)
+  questionnaireCompletedAt  DateTime?
+  onboardingAnswers         Json      @default("{}")
+  defaultExpenseAccountId   String?
+  defaultIncomeAccountId    String?
+  defaultSavingsAccountId   String?
+  /// % da receita a transferir para poupança (método «paga-te a ti primeiro»).
+  payYourselfPercent        Decimal?  @db.Decimal(5, 2)
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+}
+
+model FinanceAccount {
+  id                 String             @id @default(cuid())
+  userId             String
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name               String
+  type               FinanceAccountType
+  currency           String             @default("AOA")
+  icon               String?
+  color              String?
+  initialBalance     Decimal            @default(0) @db.Decimal(14, 2)
+  initialBalanceDate DateTime           @default(now()) @db.Date
+  institution        String?
+  maskedIdentifier   String?
+  includeInNetWorth  Boolean            @default(true)
+  isArchived         Boolean            @default(false)
+  sortOrder          Int                @default(0)
+  /// Cartão: limite de crédito (opcional).
+  creditLimit        Decimal?           @db.Decimal(14, 2)
+  /// Cartão: dia de fecho do ciclo (1–28).
+  billingCycleDay    Int?
+  /// Cartão: dia limite de pagamento (1–28).
+  paymentDueDay      Int?
+  /// TAEG/juro anual % (cartão ou empréstimo).
+  aprPercent         Decimal?           @db.Decimal(6, 3)
+  /// Empréstimo: prestação mínima mensal.
+  minimumPayment     Decimal?           @db.Decimal(14, 2)
+  /// Empréstimo: capital inicial contratado.
+  originalPrincipal  Decimal?           @db.Decimal(14, 2)
+  movements          FinanceMovement[]    @relation("MovementAccount")
+  transfersIn        FinanceMovement[]    @relation("TransferDestAccount")
+  goals              FinanceAccountGoal[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  @@index([userId])
+}
+
+model FinanceCategory {
+  id        String              @id
+  kind      FinanceCategoryKind
+  name      String
+  icon      String?
+  sortOrder Int                 @default(0)
+  movements FinanceMovement[]
+  budgets   FinanceCategoryBudget[]
+
+  @@index([kind])
+}
+
+model FinanceCategoryBudget {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  month       DateTime        @db.Date
+  categoryId  String
+  category    FinanceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  limitAmount Decimal         @db.Decimal(14, 2)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@unique([userId, month, categoryId])
+  @@index([userId, month])
+}
+
+model FinanceAccountGoal {
+  id              String         @id @default(cuid())
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  targetAmount    Decimal        @db.Decimal(14, 2)
+  targetAccountId String
+  targetAccount   FinanceAccount @relation(fields: [targetAccountId], references: [id], onDelete: Cascade)
+  deadline        DateTime?      @db.Date
+  status          String         @default("ACTIVE")
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([targetAccountId])
+}
+
+model FinanceMovement {
+  id                    String              @id @default(cuid())
+  userId                String
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type                  FinanceMovementType
+  accountId             String
+  account               FinanceAccount      @relation("MovementAccount", fields: [accountId], references: [id], onDelete: Cascade)
+  transferDestAccountId String?
+  transferDestAccount   FinanceAccount?     @relation("TransferDestAccount", fields: [transferDestAccountId], references: [id], onDelete: SetNull)
+  amount                Decimal             @db.Decimal(14, 2)
+  date                  DateTime            @db.Date
+  categoryId            String?
+  category              FinanceCategory?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  note                  String?
+  linkedClientRowId     String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@index([userId, date])
+  @@index([accountId])
+}
+
+/// Lote compactado: 25 movimentos em detalhe → 1 resumo (id fin-roll-*), linhas preservam saldos.
+model FinanceMovementRollup {
+  id         String   @id
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sequence   Int
+  periodFrom DateTime @db.Date
+  periodTo   DateTime @db.Date
+  count      Int      @default(25)
+  totals     Json
+  lines      Json
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, sequence])
+  @@index([userId])
+}
+
+model FinanceWeeklyReview {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekStart        DateTime @db.Date
+  answers          Json     @default("{}")
+  accountSnapshots Json     @default("{}")
+  createdAt        DateTime @default(now())
+
+  @@unique([userId, weekStart])
+  @@index([userId])
+}
+
+model UserMethodProgress {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  methodId    String
+  stepIndex   Int       @default(0)
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@unique([userId, methodId])
+  @@index([userId])
 }

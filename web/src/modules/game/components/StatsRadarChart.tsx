@@ -3,6 +3,7 @@ import {
   gameAccentLineClass,
   gamePanelClass,
   gamePanelGlowClass,
+  gameSectionLabelClass,
 } from "@/modules/game/styles/gameTokens";
 
 type StatsRadarChartProps = {
@@ -38,11 +39,11 @@ export function StatsRadarChart({ attributes }: StatsRadarChartProps) {
     <section className={gamePanelClass}>
       <div className={gamePanelGlowClass} aria-hidden />
       <div className={gameAccentLineClass} aria-hidden />
-      <div className="border-b border-zinc-800 px-4 py-4 md:px-6">
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-600/80">
+      <div className="border-b border-border px-4 py-4 md:px-6">
+        <p className={gameSectionLabelClass}>
           // atributos
         </p>
-        <h2 className="mt-1 text-lg font-medium text-white">Perfil de execução</h2>
+        <h2 className="mt-1 text-lg font-medium text-foreground">Perfil de execução</h2>
       </div>
       <div className="flex justify-center p-6">
         <svg viewBox="0 0 240 240" className="h-56 w-56 max-w-full">
@@ -66,13 +67,13 @@ export function StatsRadarChart({ attributes }: StatsRadarChartProps) {
           })}
           <polygon
             points={polygon}
-            fill="rgb(16 185 129 / 0.25)"
-            stroke="rgb(52 211 153)"
+            fill="rgb(139 92 246 / 0.25)"
+            stroke="rgb(167 139 250)"
             strokeWidth="2"
           />
           {points.map((p) => (
             <g key={p.label}>
-              <circle cx={p.x} cy={p.y} r="3" fill="rgb(52 211 153)" />
+              <circle cx={p.x} cy={p.y} r="3" fill="rgb(167 139 250)" />
               <text
                 x={p.labelX}
                 y={p.labelY}

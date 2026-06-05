@@ -174,16 +174,16 @@ export function WorkspaceEditDialog({
           <div className={techCardAccentClass} aria-hidden />
 
           <div className="mb-6 flex items-start gap-3">
-            <span className="flex size-10 items-center justify-center border border-zinc-800 bg-zinc-900">
+            <span className="flex size-10 items-center justify-center border border-border bg-card">
               <Pencil className="size-4 text-emerald-600/80" />
             </span>
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-600/80">
+              <p className="font-mono text-xs uppercase tracking-[0.2em] text-emerald-600/80">
                 // espaço
               </p>
               <h2
                 id="workspace-edit-title"
-                className="mt-1 text-lg font-semibold text-white"
+                className="mt-1 text-lg font-semibold text-foreground"
               >
                 Editar espaço
               </h2>
@@ -194,7 +194,7 @@ export function WorkspaceEditDialog({
             <div>
               <label
                 htmlFor="ws-name"
-                className="mb-1.5 block font-mono text-[10px] uppercase text-zinc-500"
+                className="mb-1.5 block font-mono text-xs uppercase text-muted-foreground"
               >
                 Nome
               </label>
@@ -213,7 +213,7 @@ export function WorkspaceEditDialog({
             <div>
               <label
                 htmlFor="ws-icon"
-                className="mb-1.5 block font-mono text-[10px] uppercase text-zinc-500"
+                className="mb-1.5 block font-mono text-xs uppercase text-muted-foreground"
               >
                 Ícone
               </label>
@@ -224,20 +224,20 @@ export function WorkspaceEditDialog({
               />
             </div>
             <div>
-              <label className="mb-1.5 block font-mono text-[10px] uppercase text-zinc-500">
+              <label className="mb-1.5 block font-mono text-xs uppercase text-muted-foreground">
                 Bases de dados
               </label>
-              <p className="mb-2 text-xs text-zinc-600">
+              <p className="mb-2 text-sm text-muted-foreground">
                 Marca ou desmarca as bases deste espaço. Tem de ficar pelo menos
                 uma activa. Ao remover, os dados dessa base são apagados.
               </p>
               {toRemove.length > 0 ? (
-                <p className="mb-2 text-xs text-amber-500/90">
+                <p className="mb-2 text-sm text-amber-500/90">
                   A remover: {removeLabels}
                 </p>
               ) : null}
               {loadingDetail ? (
-                <p className="text-xs text-zinc-500">A carregar bases…</p>
+                <p className="text-sm text-muted-foreground">A carregar bases…</p>
               ) : (
                 <WorkspaceDatabasePicker
                   selected={pickerSelection}
@@ -249,7 +249,7 @@ export function WorkspaceEditDialog({
           </div>
 
           {error ? (
-            <p className="mt-4 text-xs text-red-400">{error}</p>
+            <p className="mt-4 text-sm text-red-700 dark:text-red-400">{error}</p>
           ) : null}
 
           <div className="mt-6 flex justify-end gap-2">

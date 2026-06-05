@@ -179,7 +179,7 @@ export function TableView({ workspaceId, database, queryKey }: TableViewProps) {
         hint={viewHint("TABLE")}
         action={
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] text-zinc-600">
+            <span className="font-mono text-sm text-muted-foreground">
               {visibleProps.length}/{properties.length} colunas
             </span>
             <TableColumnMenu
@@ -218,9 +218,9 @@ export function TableView({ workspaceId, database, queryKey }: TableViewProps) {
           )}
         >
           <table className="w-full table-fixed border-collapse text-sm">
-            <thead className="sticky top-0 z-10 bg-zinc-900">
-              <tr className="border-b border-zinc-800">
-                <th className="w-10 px-3 py-3 text-center font-mono text-[10px] font-medium uppercase tracking-wider text-zinc-600">
+            <thead className="sticky top-0 z-10 bg-card">
+              <tr className="border-b border-border">
+                <th className="w-10 px-3 py-3 text-center font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   #
                 </th>
                 {visibleProps.map((prop) => {
@@ -351,12 +351,12 @@ export function TableView({ workspaceId, database, queryKey }: TableViewProps) {
                             : undefined
                         }
                         className={cn(
-                          "group/row border-b border-zinc-800/80 transition-colors",
-                          "hover:bg-zinc-900/60",
-                          index % 2 === 1 && "bg-zinc-900/20"
+                          "group/row border-b border-border/80 transition-colors",
+                          "hover:bg-card/60",
+                          index % 2 === 1 && "bg-secondary/20"
                         )}
                       >
-                        <td className="px-3 py-2.5 text-center font-mono text-[10px] tabular-nums text-zinc-600">
+                        <td className="px-3 py-2.5 text-center font-mono text-xs tabular-nums text-muted-foreground">
                           {index + 1}
                         </td>
                         {visibleProps.map((prop) => {

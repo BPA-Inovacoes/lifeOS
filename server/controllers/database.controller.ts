@@ -4,6 +4,24 @@ import type { DatabaseService } from "../services/database.service";
 export class DatabaseController {
   constructor(private database: DatabaseService) {}
 
+  create = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const data = this.database.parseCreateDatabase(req.body);
+      const database = await this.database.create(
+        req.params.workspaceId!,
+        req.user!.id,
+        data
+      );
+      res.status(201).json({ database });
+    } catch (e) {
+      next(e);
+    }
+  };
+
   list = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const databases = await this.database.list(
@@ -35,12 +53,12 @@ export class DatabaseController {
   ): Promise<void> => {
     try {
       const data = this.database.parseCreateRow(req.body);
-      const row = await this.database.createRow(
+      const result = await this.database.createRow(
         req.params.databaseId!,
         req.user!.id,
         data
       );
-      res.status(201).json({ row });
+      res.status(201).json(result);
     } catch (e) {
       next(e);
     }
@@ -53,12 +71,12 @@ export class DatabaseController {
   ): Promise<void> => {
     try {
       const data = this.database.parseUpdateRow(req.body);
-      const row = await this.database.updateRow(
+      const result = await this.database.updateRow(
         req.params.rowId!,
         req.user!.id,
         data
       );
-      res.json({ row });
+      res.json(result);
     } catch (e) {
       next(e);
     }

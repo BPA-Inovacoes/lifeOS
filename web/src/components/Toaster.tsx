@@ -1,30 +1,16 @@
-import { CheckCircle2, Info, X, XCircle } from "lucide-react";
+import { X } from "lucide-react";
 
-import { useToastStore, type ToastVariant } from "@/store/toastStore";
+import { getToastThemeEntry } from "@/components/toastThemes";
+import type { AppMode } from "@/routes/paths";
+import { useToastStore } from "@/store/toastStore";
 import { cn } from "@/lib/utils";
 
-const variantStyles: Record<
-  ToastVariant,
-  { bar: string; icon: typeof Info; iconClass: string }
-> = {
-  success: {
-    bar: "bg-emerald-600",
-    icon: CheckCircle2,
-    iconClass: "text-emerald-500",
-  },
-  error: {
-    bar: "bg-red-600",
-    icon: XCircle,
-    iconClass: "text-red-400",
-  },
-  info: {
-    bar: "bg-zinc-600",
-    icon: Info,
-    iconClass: "text-zinc-400",
-  },
+type Props = {
+  /** Modo activo — cores do toast seguem Focus / Game / Finanças */
+  mode?: AppMode;
 };
 
-export function Toaster() {
+export function Toaster({ mode = "focus" }: Props) {
   const toasts = useToastStore((s) => s.toasts);
   const dismiss = useToastStore((s) => s.dismiss);
 
@@ -32,31 +18,34 @@ export function Toaster() {
 
   return (
     <div
-      className="pointer-events-none fixed bottom-4 right-4 z-[300] flex max-w-sm flex-col gap-2 p-4 sm:bottom-6 sm:right-6"
+      className="pointer-events-none fixed bottom-4 right-4 z-[300] flex max-w-md flex-col gap-2 p-4 sm:bottom-6 sm:right-6"
       aria-live="polite"
       aria-label="Notificações"
     >
       {toasts.map((t) => {
-        const v = variantStyles[t.variant];
+        const v = getToastThemeEntry(mode, t.variant);
         const Icon = v.icon;
         return (
           <div
             key={t.id}
-            className="pointer-events-auto relative overflow-hidden border border-zinc-800 bg-zinc-950 shadow-xl transition-opacity"
+            className={cn(
+              "pointer-events-auto relative overflow-hidden border bg-background shadow-xl transition-opacity",
+              v.border
+            )}
             role="status"
           >
-            <div className={cn("absolute left-0 top-0 h-0.5 w-full", v.bar)} />
-            <div className="flex items-start gap-3 px-4 py-3 pr-10">
-              <Icon className={cn("size-4 shrink-0 mt-0.5", v.iconClass)} />
-              <p className="text-sm text-zinc-200">{t.message}</p>
+            <div className={cn("absolute left-0 top-0 h-1 w-full", v.bar)} />
+            <div className="flex items-start gap-3 px-4 py-3.5 pr-11">
+              <Icon className={cn("mt-0.5 size-5 shrink-0", v.iconClass)} />
+              <p className="text-base leading-snug text-foreground">{t.message}</p>
             </div>
             <button
               type="button"
-              className="absolute right-2 top-2 p-1 text-zinc-600 hover:text-zinc-300"
+              className="absolute right-2 top-2.5 p-1.5 text-muted-foreground transition-colors hover:text-foreground"
               aria-label="Fechar"
               onClick={() => dismiss(t.id)}
             >
-              <X className="size-3.5" />
+              <X className="size-4" />
             </button>
           </div>
         );

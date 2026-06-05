@@ -6,6 +6,7 @@ export function createDatabaseRouter(controller: DatabaseController): Router {
   const r = Router({ mergeParams: true });
   r.use(requireAuth());
   r.get("/", controller.list);
+  r.post("/", controller.create);
   r.get("/:databaseId", controller.get);
   r.post("/:databaseId/rows", controller.createRow);
   return r;

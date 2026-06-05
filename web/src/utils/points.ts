@@ -52,6 +52,6 @@ export function formatPoints(n: number) {
 
 export function pointsBadgeClass(earned: boolean) {
   return earned
-    ? "border-emerald-900/60 bg-emerald-950/50 text-emerald-400"
-    : "border-zinc-700 bg-zinc-900/80 text-zinc-500";
+    ? "border-emerald-900/60 bg-emerald-950/50 text-emerald-800 dark:text-emerald-400"
+    : "border-border bg-secondary/80 text-muted-foreground";
 }

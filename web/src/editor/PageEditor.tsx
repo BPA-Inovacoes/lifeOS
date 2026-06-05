@@ -356,21 +356,21 @@ export function PageEditor({
     <div className="mx-auto w-full max-w-3xl px-4 py-8 md:px-8">
       <DataPanel
         header={
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-600/80">
+          <span className="font-mono text-xs uppercase tracking-[0.2em] text-emerald-600/80">
             // conteúdo
           </span>
         }
         footer={
-          <span className="font-mono text-[10px] uppercase text-zinc-600">
+          <span className="font-mono text-xs uppercase text-muted-foreground">
             / em qualquer bloco ou abaixo · Enter linha vazia = parágrafo
           </span>
         }
       >
         <div className="space-y-0.5 p-3 md:p-4">
           {blocks.length === 0 ? (
-            <p className="py-8 text-center text-sm text-zinc-500">
+            <p className="py-8 text-center text-sm text-muted-foreground">
               Página vazia. Escreve{" "}
-              <kbd className="border border-zinc-700 px-1 font-mono text-xs">/</kbd>{" "}
+              <kbd className="border border-border px-1 font-mono text-xs">/</kbd>{" "}
               abaixo para adicionar blocos.
             </p>
           ) : (
@@ -387,7 +387,7 @@ export function PageEditor({
                   onDragStart={() => handleDragStart(block.id)}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => handleDrop(block.id)}
-                  className="group relative flex gap-2 border border-transparent px-1 py-1 transition-colors hover:border-zinc-800 hover:bg-zinc-900/50"
+                  className="group relative flex gap-2 border border-transparent px-1 py-1 transition-colors hover:border-border hover:bg-secondary/50"
                 >
                   <button
                     type="button"
@@ -395,7 +395,7 @@ export function PageEditor({
                     aria-label="Arrastar bloco"
                     tabIndex={-1}
                   >
-                    <GripVertical className="size-4 text-zinc-600" />
+                    <GripVertical className="size-4 text-muted-foreground" />
                   </button>
                   <div className="relative min-w-0 flex-1">
                     {showMenu ? (
@@ -422,14 +422,14 @@ export function PageEditor({
                     aria-label="Apagar bloco"
                     onClick={() => removeBlock.mutate(block.id)}
                   >
-                    <Trash2 className="size-4 text-zinc-600 hover:text-red-400" />
+                    <Trash2 className="size-4 text-muted-foreground hover:text-red-400" />
                   </button>
                 </div>
               );
             })
           )}
 
-          <div className="relative border-t border-zinc-800/80 pt-3">
+          <div className="relative border-t border-border/80 pt-3">
             {inserter.startsWith("/") && !slashBlockId ? (
               <div className="absolute bottom-full left-0 z-20 mb-1">
                 <SlashMenu
@@ -440,7 +440,7 @@ export function PageEditor({
               </div>
             ) : null}
             <div className="flex items-center gap-2">
-              <Plus className="size-4 shrink-0 text-zinc-600" />
+              <Plus className="size-4 shrink-0 text-muted-foreground" />
               <input
                 ref={inserterRef}
                 value={inserter}
@@ -449,7 +449,7 @@ export function PageEditor({
                 placeholder="Escreve '/' para comandos…"
                 className={cn(
                   "w-full bg-transparent py-2 text-[15px] outline-none",
-                  "placeholder:font-mono placeholder:text-xs placeholder:text-zinc-600"
+                  "placeholder:font-mono placeholder:text-xs placeholder:text-muted-foreground"
                 )}
               />
             </div>

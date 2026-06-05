@@ -20,7 +20,7 @@ export function SlashMenu({ commands, activeIndex, onSelect }: SlashMenuProps) {
       <div
         className={cn(
           techCardClass,
-          "relative px-3 py-2 text-sm text-zinc-500 shadow-lg"
+          "relative px-3 py-2 text-sm text-muted-foreground shadow-lg"
         )}
       >
         <div className={techCardAccentClass} aria-hidden />
@@ -52,8 +52,8 @@ export function SlashMenu({ commands, activeIndex, onSelect }: SlashMenuProps) {
               onSelect(cmd);
             }}
           >
-            <span className="font-medium text-zinc-200">{cmd.label}</span>
-            <span className="text-xs text-zinc-500">{cmd.description}</span>
+            <span className="font-medium text-foreground">{cmd.label}</span>
+            <span className="text-sm text-muted-foreground">{cmd.description}</span>
           </button>
         </li>
       ))}

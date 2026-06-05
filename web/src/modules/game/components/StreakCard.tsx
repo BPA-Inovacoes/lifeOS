@@ -22,11 +22,11 @@ export function StreakCard({ current }: StreakCardProps) {
           <Flame className="size-7 text-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.5)]" />
         </div>
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">
+          <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
             Streak activo
           </p>
           <p>
-            <span className="text-3xl font-semibold text-white">{current}</span>
+            <span className="text-3xl font-semibold text-foreground">{current}</span>
             <span className={cn("ml-1 text-sm", gameNeonTextClass)}>dias</span>
           </p>
         </div>

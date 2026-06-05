@@ -31,7 +31,7 @@ export function QueryErrorPanel({
             type="button"
             variant="outline"
             size="sm"
-            className={cn("font-mono text-[10px] uppercase", transitionColorsClass)}
+            className={cn("font-mono text-xs uppercase", transitionColorsClass)}
             onClick={onRetry}
           >
             {retryLabel} →

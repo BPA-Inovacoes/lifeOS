@@ -4,6 +4,7 @@ const TEMPLATE_LABELS: Record<string, string> = {
   GOALS: "Objetivos",
   STUDIES: "Estudos",
   PROJECTS: "Projetos",
+  CLIENTS: "Clientes",
   CUSTOM: "Personalizada",
   NOTES: "Notas",
 };

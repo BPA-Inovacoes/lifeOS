@@ -191,7 +191,7 @@ export function ListView({ workspaceId, database, queryKey }: ListViewProps) {
                     key={row.id}
                     className={cn(
                       "group/row px-4 py-4 transition-colors",
-                      done ? "bg-zinc-900/40" : "hover:bg-zinc-900/60"
+                      done ? "bg-secondary/40" : "hover:bg-card/60"
                     )}
                   >
                     <div className="flex items-center gap-4">
@@ -200,8 +200,8 @@ export function ListView({ workspaceId, database, queryKey }: ListViewProps) {
                         className={cn(
                           "flex size-10 shrink-0 items-center justify-center border transition-colors",
                           done
-                            ? "border-emerald-800 bg-emerald-950/50 text-emerald-500"
-                            : "border-zinc-700 text-zinc-600 hover:border-emerald-800 hover:text-emerald-500"
+                            ? "border-emerald-800 bg-emerald-950/50 text-emerald-800 dark:text-emerald-500"
+                            : "border-border text-muted-foreground hover:border-emerald-800 hover:text-emerald-500"
                         )}
                         aria-label={done ? "Desmarcar" : "Marcar feito hoje"}
                         onClick={() =>
@@ -220,27 +220,27 @@ export function ListView({ workspaceId, database, queryKey }: ListViewProps) {
                       <div className="min-w-0 flex-1">
                         <p
                           className={cn(
-                            "font-medium text-zinc-100",
-                            done && "text-zinc-500 line-through"
+                            "font-medium text-foreground",
+                            done && "text-muted-foreground line-through"
                           )}
                         >
                           {title}
                         </p>
                         <div className="mt-1 flex flex-wrap items-center gap-2">
                           {freq ? (
-                            <span className="font-mono text-[9px] uppercase text-zinc-600">
+                            <span className="font-mono text-xs uppercase text-muted-foreground">
                               {freq}
                             </span>
                           ) : null}
                           {typeof act?.consistency === "number" ? (
-                            <span className="font-mono text-[9px] uppercase text-zinc-500">
+                            <span className="font-mono text-xs uppercase text-muted-foreground">
                               {consistency}% consistência
                             </span>
                           ) : null}
                           {pts > 0 ? (
                             <span
                               className={cn(
-                                "border px-1.5 py-0.5 font-mono text-[9px] uppercase",
+                                "border px-1.5 py-0.5 font-mono text-xs uppercase",
                                 pointsBadgeClass(done)
                               )}
                             >
@@ -280,9 +280,9 @@ export function ListView({ workspaceId, database, queryKey }: ListViewProps) {
               return (
                 <li
                   key={row.id}
-                  className="group/row flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-zinc-900/50"
+                  className="group/row flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-secondary/50"
                 >
-                  <span className="min-w-[140px] flex-1 text-sm font-medium text-zinc-200">
+                  <span className="min-w-[140px] flex-1 text-sm font-medium text-foreground">
                     {title}
                   </span>
                   {database.properties

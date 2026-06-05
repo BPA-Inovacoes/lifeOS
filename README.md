@@ -7,7 +7,7 @@ Workspace modular de produtividade — inspirado em Notion, Linear e ClickUp.
 | `web/` | React 19, TypeScript, Vite, Tailwind, shadcn/ui, Zustand, TanStack Query |
 | `server/` | Express, Prisma, Neon PostgreSQL, JWT, Zod |
 
-Documentação: [`docs/MANUAL-UTILIZADOR.md`](docs/MANUAL-UTILIZADOR.md) · [`docs/REFINEMENT-PLAN.md`](docs/REFINEMENT-PLAN.md) · [`docs/POLISH-PLAN.md`](docs/POLISH-PLAN.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/ROADMAP.md`](docs/ROADMAP.md) · [`docs/DEPLOY.md`](docs/DEPLOY.md)
+Documentação: [`docs/ESTADO-ATUAL.md`](docs/ESTADO-ATUAL.md) (inventário) · [`docs/MANUAL-UTILIZADOR.md`](docs/MANUAL-UTILIZADOR.md) · [`docs/GAME-MODE.md`](docs/GAME-MODE.md) · [`docs/REFINEMENT-PLAN.md`](docs/REFINEMENT-PLAN.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/ROADMAP.md`](docs/ROADMAP.md) · [`docs/DEPLOY.md`](docs/DEPLOY.md)
 
 ## Requisitos
 

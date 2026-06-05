@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 
 import type { ActivityService } from "./activity.service";
+import type { FinanceService } from "./finance.service";
 import { WorkspaceService } from "./workspace.service";
 import { isTaskCompleted, rowPoints } from "../utils/points";
 
@@ -43,7 +44,8 @@ export class DashboardService {
   constructor(
     private prisma: PrismaClient,
     private workspaces: WorkspaceService,
-    private activity: ActivityService
+    private activity: ActivityService,
+    private finance?: FinanceService
   ) {}
 
   async getSummary(userId: string) {
@@ -321,6 +323,10 @@ export class DashboardService {
     const pointsToday = todayPts.total;
     const pointsGoal = pointsToday + pointsAvailable;
 
+    const financeSnapshot = this.finance
+      ? await this.finance.getFocusSnapshot(userId).catch(() => ({ enabled: false as const }))
+      : { enabled: false as const };
+
     return {
       metrics: {
         tasksOpen,
@@ -349,6 +355,7 @@ export class DashboardService {
         inbox: taskInbox,
       },
       workspaces: workspaceList,
+      finance: financeSnapshot,
     };
   }
 }

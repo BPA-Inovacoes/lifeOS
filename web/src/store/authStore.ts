@@ -7,6 +7,7 @@ type AuthState = {
   token: string | null;
   user: AuthUser | null;
   setSession: (payload: { token: string; user: AuthUser }) => void;
+  updateUser: (user: AuthUser) => void;
   clearSession: () => void;
 };
 
@@ -17,6 +18,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       user: null,
       setSession: ({ token, user }) => set({ token, user }),
+      updateUser: (user) => set({ user }),
       clearSession: () => set({ token: null, user: null }),
     }),
     {

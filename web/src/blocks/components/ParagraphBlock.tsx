@@ -12,7 +12,7 @@ export function ParagraphBlock({ block, editable, onChange, slash }: BlockRender
       className={cn(
         "min-h-[1.5rem] text-[15px] leading-relaxed",
         editable &&
-          "empty:before:font-mono empty:before:text-xs empty:before:text-zinc-600 empty:before:content-['Escreve_ou_pressiona_/_para_comandos…']"
+          "empty:before:font-mono empty:before:text-xs empty:before:text-muted-foreground empty:before:content-['Escreve_ou_pressiona_/_para_comandos…']"
       )}
       onChange={(next) => onChange?.({ ...block.content, text: next })}
       onSlashInput={slash?.onSlashInput}

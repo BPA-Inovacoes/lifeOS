@@ -2,6 +2,24 @@ import { phaseForLevel } from "./phases";
 
 export const LEVEL_CAP = 100;
 
+/** Rank global E–SSS (LifeOS RPG v1). */
+export type GlobalRank = "E" | "D" | "C" | "B" | "A" | "S" | "SS" | "SSS";
+
+const GLOBAL_RANKS: {
+  rank: GlobalRank;
+  minLevel: number;
+  label: string;
+}[] = [
+  { rank: "SSS", minLevel: 95, label: "Lendário" },
+  { rank: "SS", minLevel: 80, label: "Mestre" },
+  { rank: "S", minLevel: 65, label: "Elite" },
+  { rank: "A", minLevel: 50, label: "Líder" },
+  { rank: "B", minLevel: 35, label: "Executor" },
+  { rank: "C", minLevel: 20, label: "Operador" },
+  { rank: "D", minLevel: 10, label: "Aprendiz" },
+  { rank: "E", minLevel: 1, label: "Iniciante" },
+];
+
 type LevelAnchor = {
   level: number;
   xp: number;
@@ -15,109 +33,6 @@ const XP_ANCHORS: LevelAnchor[] = [
   { level: 80, xp: 40_000 },
   { level: 99, xp: 100_000 },
   { level: 100, xp: 120_000 },
-];
-
-const LEVEL_RANKS: string[] = [
-  "Wanderer",
-  "Initiate",
-  "Seeker",
-  "Focused",
-  "Disciplined",
-  "Organized",
-  "Builder",
-  "Achiever",
-  "Consistent",
-  "Awakened",
-  "Runner",
-  "Operator",
-  "Producer",
-  "Planner",
-  "Executor",
-  "Tracker",
-  "Strategist",
-  "Precision",
-  "Vanguard",
-  "Accelerated",
-  "Deep Worker",
-  "Specialist",
-  "Elite",
-  "Controller",
-  "Commander",
-  "Hyperfocus",
-  "Peak Performer",
-  "Relentless",
-  "Titan",
-  "Apex",
-  "Prime",
-  "Elite Executor",
-  "Dominator",
-  "Conqueror",
-  "Ascended",
-  "Architect",
-  "Visionary",
-  "Warborn",
-  "Phantom",
-  "Grandmaster",
-  "Zenith",
-  "Supreme",
-  "Infinite",
-  "Alpha",
-  "Mythic",
-  "Eternal",
-  "Overlord",
-  "Transcendent",
-  "Omni",
-  "LifeOS Master",
-  "Nova",
-  "Eclipse",
-  "Void Walker",
-  "Quantum",
-  "Overmind",
-  "Chronos",
-  "Hyperion",
-  "Nexus",
-  "Tempest",
-  "Oracle",
-  "Catalyst",
-  "Singularity",
-  "Celestial",
-  "Infinity Core",
-  "Evolutionary",
-  "Ethereal",
-  "Astral",
-  "Arcane",
-  "Paragon",
-  "Divine",
-  "Monolith",
-  "Empyrean",
-  "Solaris",
-  "Nemesis",
-  "Oblivion",
-  "Exodus",
-  "Ragnarok",
-  "Genesis",
-  "Beyond",
-  "Transcendent",
-  "Sovereign",
-  "Emperor",
-  "Titanborn",
-  "Dominion",
-  "Ascendant",
-  "Immortal",
-  "Omniscient",
-  "Ultra Mind",
-  "Absolute",
-  "Apex Prime",
-  "Supreme Architect",
-  "Cosmic",
-  "Eternal Mind",
-  "Omega",
-  "Final Form",
-  "OmniCore",
-  "Godspeed",
-  "Limitless",
-  "The One",
-  "LIFEOS LEGEND",
 ];
 
 function interpolate(anchorA: LevelAnchor, anchorB: LevelAnchor, level: number) {
@@ -166,9 +81,23 @@ export function levelFromProgressXp(progressXp: number): number {
 
 export const levelFromTotalXp = levelFromProgressXp;
 
+export function globalRankFromLevel(level: number): {
+  rank: GlobalRank;
+  label: string;
+} {
+  const clamped = Math.max(1, Math.min(LEVEL_CAP, Math.floor(level)));
+  for (const entry of GLOBAL_RANKS) {
+    if (clamped >= entry.minLevel) {
+      return { rank: entry.rank, label: entry.label };
+    }
+  }
+  return { rank: "E", label: "Iniciante" };
+}
+
+/** Título persistido no perfil — formato compacto Rank · Label. */
 export function rankTitleForLevel(level: number): string {
-  const index = Math.max(1, Math.min(LEVEL_CAP, Math.floor(level))) - 1;
-  return LEVEL_RANKS[index] ?? LEVEL_RANKS[0]!;
+  const { rank, label } = globalRankFromLevel(level);
+  return `${rank} · ${label}`;
 }
 
 export function levelProgress(progressXp: number) {
@@ -181,10 +110,13 @@ export function levelProgress(progressXp: number) {
       ? 100
       : Math.min(100, Math.round((xpInLevel / xpNeeded) * 100));
   const phase = phaseForLevel(level);
+  const globalRank = globalRankFromLevel(level);
 
   return {
     level,
-    rank: rankTitleForLevel(level),
+    rank: globalRank.rank,
+    rankLabel: globalRank.label,
+    rankTitle: rankTitleForLevel(level),
     phase,
     xpInLevel,
     xpNeeded,

@@ -34,7 +34,7 @@ export function EmptyState({
       <div className="absolute left-0 top-0 h-0.5 w-full bg-zinc-700" aria-hidden />
       <span
         className={cn(
-          "mx-auto flex items-center justify-center border border-zinc-800 bg-zinc-900",
+          "mx-auto flex items-center justify-center border border-border bg-card",
           compact ? "size-10" : "size-12"
         )}
       >
@@ -47,14 +47,14 @@ export function EmptyState({
       </span>
       <p
         className={cn(
-          "font-medium text-zinc-300",
+          "font-medium text-foreground",
           compact ? "mt-3 text-sm" : "mt-4 text-base"
         )}
       >
         {title}
       </p>
       {description ? (
-        <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
+        <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
           {description}
         </p>
       ) : null}

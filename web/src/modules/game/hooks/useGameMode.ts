@@ -5,6 +5,7 @@ import {
   fetchGameProfile,
   prestigeGameMode,
   toggleGameMode,
+  type GameDashboard,
 } from "@/services/gameApi";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "@/store/toastStore";
@@ -15,19 +16,22 @@ export function useGameMode() {
   const setGameModeEnabled = useUiStore((state) => state.setGameModeEnabled);
   const gameModeEnabled = useUiStore((state) => state.gameModeEnabled);
   const queryClient = useQueryClient();
+  const dashboardCached = queryClient.getQueryData<GameDashboard>(["game", "dashboard"]);
 
   const profileQuery = useQuery({
     queryKey: ["game", "profile"],
     queryFn: fetchGameProfile,
-    enabled: Boolean(token),
+    enabled: Boolean(token) && !dashboardCached,
     staleTime: 60_000,
+    placeholderData: () => dashboardCached?.profile,
   });
 
   useEffect(() => {
-    if (profileQuery.data) {
-      setGameModeEnabled(profileQuery.data.gameModeEnabled);
+    const profile = dashboardCached?.profile ?? profileQuery.data;
+    if (profile) {
+      setGameModeEnabled(profile.gameModeEnabled);
     }
-  }, [profileQuery.data, setGameModeEnabled]);
+  }, [dashboardCached?.profile, profileQuery.data, setGameModeEnabled]);
 
   const toggle = useMutation({
     mutationFn: toggleGameMode,
@@ -46,6 +50,7 @@ export function useGameMode() {
   const prestige = useMutation({
     mutationFn: prestigeGameMode,
     onSuccess: (profile) => {
+      if (!profile) return;
       setGameModeEnabled(profile.gameModeEnabled);
       queryClient.setQueryData(["game", "profile"], profile);
       queryClient.invalidateQueries({ queryKey: ["game"] });
@@ -57,10 +62,12 @@ export function useGameMode() {
     },
   });
 
+  const profile = dashboardCached?.profile ?? profileQuery.data;
+
   return {
     gameModeEnabled,
-    profile: profileQuery.data,
-    isLoadingProfile: profileQuery.isLoading,
+    profile,
+    isLoadingProfile: !profile && profileQuery.isLoading,
     isFetchingProfile: profileQuery.isFetching,
     toggleMode: (enabled: boolean) => toggle.mutate(enabled),
     prestige: () => prestige.mutate(),

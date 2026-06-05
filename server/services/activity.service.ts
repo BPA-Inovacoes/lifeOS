@@ -1,5 +1,9 @@
 import type { PointsEventSource, PrismaClient } from "@prisma/client";
 
+import type { FinanceIncomeSuggestion } from "../finance/finance-income-suggestion";
+import { buildClientIncomeSuggestion } from "../finance/finance-income-suggestion";
+import type { GamificationFeedbackPayload } from "../gamification/feedback";
+import { toGamificationFeedback } from "../gamification/feedback";
 import type { GamificationEngine } from "../gamification/engine";
 import type { ActivityContext } from "../gamification/xp-rules";
 import { addDays, toDayDate, toDayKey, weekdayLabel } from "../utils/day";
@@ -10,6 +14,7 @@ import {
 } from "../utils/habit-stats";
 import {
   findProp,
+  isClientClosed,
   isGoalCompleted,
   isStudyCompleted,
   isTaskCompleted,
@@ -23,6 +28,11 @@ type RowShape = {
   databaseId: string;
   properties: unknown;
   database: { workspaceId: string; template: string };
+};
+
+export type RowActivityResult = {
+  gamification: GamificationFeedbackPayload | null;
+  financeSuggestion: FinanceIncomeSuggestion | null;
 };
 
 function findDoneProp(properties: Prop[]) {
@@ -130,7 +140,8 @@ export class ActivityService {
     properties: Prop[],
     merged: Record<string, unknown>,
     previous: Record<string, unknown>
-  ) {
+  ): Promise<RowActivityResult> {
+    const empty: RowActivityResult = { gamification: null, financeSuggestion: null };
     const template = row.database.template;
     const workspaceId = row.database.workspaceId;
     const today = toDayDate();
@@ -138,7 +149,7 @@ export class ActivityService {
 
     if (template === "HABITS") {
       const doneProp = findDoneProp(properties);
-      if (!doneProp) return;
+      if (!doneProp) return empty;
 
       const wasDone = Boolean(previous[doneProp.id]);
       const isDone = Boolean(merged[doneProp.id]);
@@ -155,17 +166,21 @@ export class ActivityService {
           today
         );
         const habitSnapshot = await this.getHabitCompletionSnapshot(userId);
-        await this.emitGamification(userId, {
-          type: "habit.completed",
-          eventId: `habit:${row.id}:${todayKey}`,
-          workspaceId,
-          source: "HABIT",
-          points: pts,
-          rowId: row.id,
-          template,
-          frequency,
-          allHabitsCompletedToday: habitSnapshot.allDone,
-        });
+        return {
+          gamification: await this.emitGamification(userId, {
+            type: "habit.completed",
+            eventId: `habit:${row.id}:${todayKey}`,
+            workspaceId,
+            source: "HABIT",
+            points: pts,
+            rowId: row.id,
+            template,
+            frequency,
+            habitArea: this.readHabitRpgArea(properties, merged),
+            allHabitsCompletedToday: habitSnapshot.allDone,
+          }),
+          financeSuggestion: null,
+        };
       } else if (!isDone && wasDone) {
         await this.clearPointsEvent(row.id, today);
       } else if (isDone) {
@@ -178,12 +193,12 @@ export class ActivityService {
           today
         );
       }
-      return;
+      return empty;
     }
 
     if (template === "TASKS") {
       const statusProp = properties.find((p) => p.type === "STATUS");
-      if (!statusProp) return;
+      if (!statusProp) return empty;
 
       const wasDone = isTaskCompleted(String(previous[statusProp.id] ?? ""));
       const isDone = isTaskCompleted(String(merged[statusProp.id] ?? ""));
@@ -198,16 +213,19 @@ export class ActivityService {
           pts,
           today
         );
-        await this.emitGamification(userId, {
-          type: "task.completed",
-          eventId: `task:${row.id}:${todayKey}`,
-          workspaceId,
-          source: "TASK",
-          points: pts,
-          rowId: row.id,
-          template,
-          priority: this.readPriority(properties, merged),
-        });
+        return {
+          gamification: await this.emitGamification(userId, {
+            type: "task.completed",
+            eventId: `task:${row.id}:${todayKey}`,
+            workspaceId,
+            source: "TASK",
+            points: pts,
+            rowId: row.id,
+            template,
+            priority: this.readPriority(properties, merged),
+          }),
+          financeSuggestion: null,
+        };
       } else if (!isDone && wasDone) {
         await this.clearPointsEvent(row.id, today);
       } else if (isDone) {
@@ -220,12 +238,12 @@ export class ActivityService {
           today
         );
       }
-      return;
+      return empty;
     }
 
     if (template === "GOALS") {
       const statusProp = properties.find((p) => p.type === "STATUS");
-      if (!statusProp) return;
+      if (!statusProp) return empty;
 
       const wasDone = isGoalCompleted(String(previous[statusProp.id] ?? ""));
       const isDone = isGoalCompleted(String(merged[statusProp.id] ?? ""));
@@ -241,19 +259,66 @@ export class ActivityService {
           goalPts,
           today
         );
-        await this.emitGamification(userId, {
-          type: "goal.completed",
-          eventId: `goal:${row.id}:${todayKey}`,
-          workspaceId,
-          source: "GOAL",
-          points: goalPts,
-          rowId: row.id,
-          template,
-        });
+        return {
+          gamification: await this.emitGamification(userId, {
+            type: "goal.completed",
+            eventId: `goal:${row.id}:${todayKey}`,
+            workspaceId,
+            source: "GOAL",
+            points: goalPts,
+            rowId: row.id,
+            template,
+            goalArea: this.readGoalArea(properties, merged),
+          }),
+          financeSuggestion: null,
+        };
       } else if (!isDone && wasDone) {
         await this.clearPointsEvent(row.id, today);
       }
-      return;
+      return empty;
+    }
+
+    if (template === "CLIENTS") {
+      const statusProp = properties.find((p) => p.type === "STATUS");
+      if (!statusProp) return empty;
+
+      const wasClosed = isClientClosed(String(previous[statusProp.id] ?? ""));
+      const isClosed = isClientClosed(String(merged[statusProp.id] ?? ""));
+      const clientPts = pts || 300;
+
+      if (isClosed && !wasClosed) {
+        const todayKey = toDayKey(today);
+        await this.upsertPointsEvent(
+          userId,
+          workspaceId,
+          row.id,
+          "CLIENT",
+          clientPts,
+          today
+        );
+        const financeSuggestion = await buildClientIncomeSuggestion(
+          this.prisma,
+          userId,
+          row,
+          properties,
+          merged
+        );
+        return {
+          gamification: await this.emitGamification(userId, {
+            type: "client.closed",
+            eventId: `client:${row.id}:${todayKey}`,
+            workspaceId,
+            source: "CLIENT",
+            points: clientPts,
+            rowId: row.id,
+            template,
+          }),
+          financeSuggestion,
+        };
+      } else if (!isClosed && wasClosed) {
+        await this.clearPointsEvent(row.id, today);
+      }
+      return empty;
     }
 
     if (template === "STUDIES") {
@@ -288,16 +353,19 @@ export class ActivityService {
           studyPts,
           today
         );
-        await this.emitGamification(userId, {
-          type: "study.session.completed",
-          eventId: `study:${row.id}:${todayKey}:done:${nextMinutes}`,
-          workspaceId,
-          source: "STUDY",
-          points: studyPts,
-          rowId: row.id,
-          template,
-          studyMinutesDelta: minutesDelta || nextMinutes,
-        });
+        return {
+          gamification: await this.emitGamification(userId, {
+            type: "study.session.completed",
+            eventId: `study:${row.id}:${todayKey}:done:${nextMinutes}`,
+            workspaceId,
+            source: "STUDY",
+            points: studyPts,
+            rowId: row.id,
+            template,
+            studyMinutesDelta: minutesDelta || nextMinutes,
+          }),
+          financeSuggestion: null,
+        };
       } else if (minutesDelta > 0) {
         const studyPts = Math.max(10, Math.round(minutesDelta / 3));
         const todayKey = toDayKey(today);
@@ -309,20 +377,25 @@ export class ActivityService {
           studyPts,
           today
         );
-        await this.emitGamification(userId, {
-          type: "study.session.completed",
-          eventId: `study:${row.id}:${todayKey}:delta:${prevMinutes}-${nextMinutes}`,
-          workspaceId,
-          source: "STUDY",
-          points: studyPts,
-          rowId: row.id,
-          template,
-          studyMinutesDelta: minutesDelta,
-        });
+        return {
+          gamification: await this.emitGamification(userId, {
+            type: "study.session.completed",
+            eventId: `study:${row.id}:${todayKey}:delta:${prevMinutes}-${nextMinutes}`,
+            workspaceId,
+            source: "STUDY",
+            points: studyPts,
+            rowId: row.id,
+            template,
+            studyMinutesDelta: minutesDelta,
+          }),
+          financeSuggestion: null,
+        };
       } else if (!isDone && wasDone) {
         await this.clearPointsEvent(row.id, today);
       }
     }
+
+    return empty;
   }
 
   normalizeHabitValues(
@@ -349,9 +422,31 @@ export class ActivityService {
     return freqProp ? String(merged[freqProp.id] ?? "Diário") : "Diário";
   }
 
-  private async emitGamification(userId: string, ctx: ActivityContext) {
-    if (!this.gamification) return;
-    await this.gamification.processActivity(userId, ctx);
+  private readHabitRpgArea(properties: Prop[], merged: Record<string, unknown>) {
+    const areaProp =
+      findProp(properties, "Área RPG") ?? findProp(properties, "Area RPG");
+    return areaProp ? String(merged[areaProp.id] ?? "Geral") : "Geral";
+  }
+
+  private readGoalArea(properties: Prop[], merged: Record<string, unknown>) {
+    const areaProp = findProp(properties, "Área");
+    return areaProp ? String(merged[areaProp.id] ?? "") : undefined;
+  }
+
+  async emitFinanceActivity(
+    userId: string,
+    ctx: ActivityContext
+  ): Promise<GamificationFeedbackPayload | null> {
+    return this.emitGamification(userId, ctx);
+  }
+
+  private async emitGamification(
+    userId: string,
+    ctx: ActivityContext
+  ): Promise<GamificationFeedbackPayload | null> {
+    if (!this.gamification) return null;
+    const result = await this.gamification.processActivity(userId, ctx);
+    return toGamificationFeedback(result);
   }
 
   async getHabitCompletionSnapshot(userId: string) {

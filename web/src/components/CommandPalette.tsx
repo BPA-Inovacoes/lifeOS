@@ -2,11 +2,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BookOpen,
   Database,
-  File,
   FilePlus,
   FileText,
   Flame,
-  Gamepad2,
+  Repeat2,
   GraduationCap,
   Keyboard,
   LayoutDashboard,
@@ -32,10 +31,13 @@ import { cn } from "@/lib/utils";
 import { createDatabaseRow } from "@/services/databaseApi";
 import { globalSearch } from "@/services/searchApi";
 import { createPage } from "@/services/workspaceApi";
+import { resolvePageIcon } from "@/modules/workspace/pageIcons";
 import { toast } from "@/store/toastStore";
 import { useUiStore } from "@/store/uiStore";
 import type { DatabaseSummary, WorkspaceSummary } from "@/types/workspace";
 import { useWorkspaceStore } from "@/store/workspaceStore";
+import { paths } from "@/routes/paths";
+import { useAppModeStore } from "@/store/appModeStore";
 import {
   fieldClass,
   kbdClass,
@@ -94,6 +96,7 @@ export function CommandPalette({
   const navigate = useNavigate();
   const qc = useQueryClient();
   const activeId = useWorkspaceStore((s) => s.activeWorkspaceId);
+  const clearActiveMode = useAppModeStore((s) => s.clearActiveMode);
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState(0);
   const debouncedQ = useDebouncedValue(query.trim(), 280);
@@ -113,11 +116,11 @@ export function CommandPalette({
 
   const createPageMutation = useMutation({
     mutationFn: (wsId: string) =>
-      createPage(wsId, { title: "Nova página", icon: "📄" }),
+      createPage(wsId, { title: "Nova página", icon: "file-text" }),
     onSuccess: (res, wsId) => {
       qc.invalidateQueries({ queryKey: ["pages", wsId] });
       qc.invalidateQueries({ queryKey: ["workspace", wsId] });
-      navigate(`/w/${wsId}/p/${res.page.id}`);
+      navigate(paths.focus.page(wsId, res.page.id));
       toast.success("Página criada");
       close();
     },
@@ -139,7 +142,7 @@ export function CommandPalette({
     onSuccess: (_res, vars) => {
       qc.invalidateQueries({ queryKey: ["database", vars.wsId, vars.dbId] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
-      navigate(`/w/${vars.wsId}/db/${vars.dbId}`);
+      navigate(paths.focus.database(vars.wsId, vars.dbId));
       toast.success(`${vars.label} criada`);
       close();
     },
@@ -172,7 +175,7 @@ export function CommandPalette({
         kind: "nav",
         section: "go",
         run: () => {
-          navigate("/dashboard");
+          navigate(paths.focus.dashboard);
           close();
         },
       },
@@ -184,19 +187,20 @@ export function CommandPalette({
         kind: "nav",
         section: "go",
         run: () => {
-          navigate("/ajuda");
+          navigate(paths.focus.help);
           close();
         },
       },
       {
-        id: "game-mode",
-        label: "Game Mode",
-        hint: "Command Center",
-        icon: Gamepad2,
+        id: "switch-mode",
+        label: "Trocar modo",
+        hint: "Focus · Game · Finanças",
+        icon: Repeat2,
         kind: "nav",
         section: "go",
         run: () => {
-          navigate("/game");
+          clearActiveMode();
+          navigate(paths.modeSelect);
           close();
         },
       },
@@ -253,7 +257,7 @@ export function CommandPalette({
           section: "go",
           boost: true,
           run: () => {
-            navigate(`/w/${activeId}/db/${tasksDb.id}`);
+            navigate(paths.focus.database(activeId, tasksDb.id));
             close();
           },
         });
@@ -285,7 +289,7 @@ export function CommandPalette({
           section: "go",
           boost: true,
           run: () => {
-            navigate(`/w/${activeId}/db/${habitsDb.id}`);
+            navigate(paths.focus.database(activeId, habitsDb.id));
             close();
           },
         });
@@ -339,7 +343,7 @@ export function CommandPalette({
           section: "go",
           boost: true,
           run: () => {
-            navigate(`/w/${activeId}/db/${goalsDb.id}`);
+            navigate(paths.focus.database(activeId, goalsDb.id));
             close();
           },
         });
@@ -355,7 +359,7 @@ export function CommandPalette({
           section: "go",
           boost: true,
           run: () => {
-            navigate(`/w/${activeId}/db/${studiesDb.id}`);
+            navigate(paths.focus.database(activeId, studiesDb.id));
             close();
           },
         });
@@ -376,7 +380,7 @@ export function CommandPalette({
           section: "go",
           boost: true,
           run: () => {
-            navigate(`/w/${activeId}/db/${db.id}`);
+            navigate(paths.focus.database(activeId, db.id));
             close();
           },
         });
@@ -393,7 +397,7 @@ export function CommandPalette({
         kind: "workspace",
         section: "go",
         run: () => {
-          navigate(`/w/${ws.id}`);
+          navigate(paths.focus.workspace(ws.id));
           close();
         },
       });
@@ -405,11 +409,11 @@ export function CommandPalette({
           id: `page-${p.id}`,
           label: p.title,
           hint: `${p.workspaceName} · Página`,
-          icon: File,
+          icon: resolvePageIcon(p.icon),
           kind: "page",
           section: "search",
           run: () => {
-            navigate(`/w/${p.workspaceId}/p/${p.id}`);
+            navigate(paths.focus.page(p.workspaceId, p.id));
             close();
           },
         });
@@ -423,7 +427,7 @@ export function CommandPalette({
           kind: "database",
           section: "search",
           run: () => {
-            navigate(`/w/${d.workspaceId}/db/${d.id}`);
+            navigate(paths.focus.database(d.workspaceId, d.id));
             close();
           },
         });
@@ -437,7 +441,7 @@ export function CommandPalette({
           kind: "row",
           section: "search",
           run: () => {
-            navigate(`/w/${r.workspaceId}/db/${r.databaseId}`);
+            navigate(paths.focus.database(r.workspaceId, r.databaseId));
             close();
           },
         });
@@ -460,6 +464,7 @@ export function CommandPalette({
     searchData,
     debouncedQ,
     setShortcutsHelpOpen,
+    clearActiveMode,
   ]);
 
   const ranked = useMemo(() => rankItems(allItems, query), [allItems, query]);
@@ -497,7 +502,7 @@ export function CommandPalette({
         )}
       >
         <div className={techCardAccentClass} aria-hidden />
-        <div className="flex items-center gap-2 border-b border-zinc-800 px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
           <Search className="size-4 shrink-0 text-emerald-600/80" />
           <input
             autoFocus
@@ -520,7 +525,7 @@ export function CommandPalette({
             className={cn(fieldClass, "h-10 min-w-0 flex-1 border-0 bg-transparent px-0")}
           />
           {searching ? (
-            <span className="shrink-0 font-mono text-[10px] text-zinc-500">
+            <span className="shrink-0 font-mono text-sm text-muted-foreground">
               …
             </span>
           ) : null}
@@ -532,20 +537,20 @@ export function CommandPalette({
           role="listbox"
         >
           {flatItems.length === 0 && debouncedQ.length >= 2 && !searching ? (
-            <li className="px-3 py-6 text-center text-sm text-zinc-500">
+            <li className="px-3 py-6 text-center text-sm text-muted-foreground">
               Sem resultados para «{debouncedQ}»
             </li>
           ) : null}
 
           {flatItems.length === 0 && query.trim().length === 0 ? (
-            <li className="px-3 py-4 text-center font-mono text-xs text-zinc-600">
+            <li className="px-3 py-4 text-center font-mono text-sm text-muted-foreground">
               Criar · Ir para · Pesquisa global com 2+ letras
             </li>
           ) : null}
 
           {groups.map(({ section, items }) => (
             <li key={section} className="list-none">
-              <p className="px-3 pb-1 pt-2 font-mono text-[9px] uppercase tracking-wider text-zinc-600">
+              <p className="px-3 pb-1 pt-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
                 {SECTION_LABELS[section]}
               </p>
               <ul>
@@ -579,7 +584,7 @@ export function CommandPalette({
                           className={cn(
                             "size-4 shrink-0",
                             action.section === "create"
-                              ? "text-emerald-500"
+                              ? "text-emerald-800 dark:text-emerald-500"
                               : action.kind === "row"
                                 ? "text-amber-600/80"
                                 : "text-emerald-600/70"
@@ -589,12 +594,12 @@ export function CommandPalette({
                           {action.label}
                         </span>
                         {action.hint ? (
-                          <span className="shrink-0 font-mono text-[10px] text-zinc-600">
+                          <span className="shrink-0 font-mono text-sm text-muted-foreground">
                             {action.hint}
                           </span>
                         ) : null}
                         {action.section === "create" ? (
-                          <Plus className="size-3 shrink-0 text-zinc-600" />
+                          <Plus className="size-3 shrink-0 text-muted-foreground" />
                         ) : null}
                       </button>
                     </li>
@@ -605,7 +610,7 @@ export function CommandPalette({
           ))}
         </ul>
 
-        <div className="flex items-center justify-between gap-2 border-t border-zinc-800 px-4 py-2 font-mono text-[9px] uppercase text-zinc-600">
+        <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2 font-mono text-xs uppercase text-muted-foreground">
           <span>
             ↑↓ navegar · Enter abrir
             {creating ? " · A criar…" : ""}

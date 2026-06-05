@@ -134,6 +134,13 @@ Mostra até **3 tarefas** com **Foco hoje** activo na database Tarefas.
 
 Para colocar tarefas no foco: na database **Tarefas**, activa **Foco hoje** (vista Tabela ou Lista).
 
+### Case — Insights do dia
+
+Widget **Case** (contorno verde) com sugestões proactivas baseadas nos teus dados: revisão financeira pendente, hábitos em falta, orçamento, etc.
+
+- Clica num insight → abre o **Case** com uma pergunta sugerida.
+- Disponível no Painel Agora (Modo Focus).
+
 ### 4.3 Cartões de métricas
 
 Resumo de tarefas abertas/concluídas, hábitos do dia, **pontos/XP hoje** e meta diária.
@@ -352,7 +359,34 @@ Lista simples de projetos usada pela coluna **Projeto** em Tarefas. Cria linhas 
 
 ---
 
-## 8. Pontos e XP
+## 8. Case — assistente
+
+O **Case** é o coach integrado no LifeOS (Focus, Game e Finanças).
+
+| Elemento | Onde | Função |
+|---------|------|--------|
+| **Botão hexagonal** | Canto inferior direito | Abre o painel de chat |
+| **Painel Case** | Sobre a app | Conversa, respostas e propostas de acção |
+| **Insights do dia** | Dashboard Agora | Atalhos para perguntas úteis |
+
+### Como usar
+
+1. Clica no **botão Case** (hexágono verde).
+2. Escreve em português — ex.: «Como está o meu património?» ou «Regista despesa 20 euros».
+3. Se o Case **propor uma acção** (criar conta, hábito, movimento…), revê o resumo e carrega **Confirmar** — nada é executado sem o teu OK.
+4. Ao **fechar** o painel, a conversa desta sessão é apagada.
+
+### Activar IA (opcional)
+
+Se o administrador configurou Groq/OpenAI no servidor, podes activar **Activar IA** no painel. Os teus dados agregados e a mensagem são enviados ao provider — lê o aviso de privacidade na UI. Podes revogar a qualquer momento.
+
+Sem IA externa, o Case usa o **motor local** (dados ficam no servidor LifeOS).
+
+Detalhe técnico: [`CASE.md`](CASE.md)
+
+---
+
+## 9. Pontos e XP
 
 1. Tarefas e hábitos têm **Pontos**.
 2. **Concluir tarefa** ou **Feito hoje** em hábito → pontos no dia.
@@ -363,7 +397,7 @@ Pontos sugeridos por prioridade/frequência; podes ajustar na célula.
 
 ---
 
-## 9. Atalhos e dicas
+## 10. Atalhos e dicas
 
 | Atalho | Ação |
 |--------|------|
@@ -381,7 +415,7 @@ Pontos sugeridos por prioridade/frequência; podes ajustar na célula.
 
 ---
 
-## 10. Sessão e conta
+## 11. Sessão e conta
 
 - Sessão persistente (token local).
 - **Terminar sessão** na sidebar.
@@ -389,7 +423,7 @@ Pontos sugeridos por prioridade/frequência; podes ajustar na célula.
 
 ---
 
-## 11. Resolução de problemas
+## 12. Resolução de problemas
 
 | Problema | O que tentar |
 |----------|----------------|
@@ -405,7 +439,7 @@ Pontos sugeridos por prioridade/frequência; podes ajustar na célula.
 
 ---
 
-## 12. Funcionalidades ainda em evolução
+## 13. Funcionalidades ainda em evolução
 
 Ver [ROADMAP](ROADMAP.md). Resumo para utilizador:
 
@@ -417,7 +451,7 @@ Ver [ROADMAP](ROADMAP.md). Resumo para utilizador:
 
 ---
 
-## 13. Glossário
+## 14. Glossário
 
 | Termo | Significado |
 |-------|-------------|
@@ -430,6 +464,7 @@ Ver [ROADMAP](ROADMAP.md). Resumo para utilizador:
 | **XP / Pontos** | Pontuação por tarefas/hábitos |
 | **Streak** | Dias seguidos com hábito feito |
 | **Foco hoje** | Tarefa na secção **Agora** |
+| **Case** | Assistente IA / coach — chat, insights e acções com confirmação |
 | **Seed** | Dados iniciais de desenvolvimento na base de dados |
 
 ---

@@ -2,6 +2,7 @@ import { Gamepad2, Target } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { gameTabItemActiveClass } from "@/modules/game/styles/gameTokens";
 import { tabItemActiveClass, tabItemClass, tabItemIdleClass } from "@/styles/designTokens";
 
 type GameModeToggleProps = {
@@ -20,7 +21,7 @@ export function GameModeToggle({
   return (
     <div
       className={cn(
-        "inline-flex rounded-none border border-zinc-800 p-0",
+        "inline-flex rounded-none border border-border p-0",
         compact && "scale-90"
       )}
       role="group"
@@ -48,7 +49,7 @@ export function GameModeToggle({
         disabled={loading}
         className={cn(
           tabItemClass,
-          enabled ? tabItemActiveClass : tabItemIdleClass,
+          enabled ? gameTabItemActiveClass : tabItemIdleClass,
           "gap-1.5 rounded-none"
         )}
         onClick={() => onChange(true)}
@@ -59,4 +60,3 @@ export function GameModeToggle({
     </div>
   );
 }
-

@@ -7,6 +7,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { WorkspaceEditDialog } from "@/modules/workspace/components/WorkspaceEditDialog";
 import { Button } from "@/components/ui/button";
 import { deleteWorkspace } from "@/services/workspaceApi";
+import { paths } from "@/routes/paths";
 import type { WorkspaceSummary } from "@/types/workspace";
 import { WorkspaceIcon } from "@/modules/workspace/components/WorkspaceIcon";
 import { cn } from "@/lib/utils";
@@ -35,7 +36,7 @@ export function WorkspaceGrid({
       qc.invalidateQueries({ queryKey: ["workspaces"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       setPendingDelete(null);
-      navigate("/dashboard", { replace: true });
+      navigate(paths.focus.dashboard, { replace: true });
     },
   });
 
@@ -44,7 +45,7 @@ export function WorkspaceGrid({
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className={sectionLabelMutedClass}>// espaços</p>
-          <h2 className="mt-1 text-lg font-medium text-white">
+          <h2 className="mt-1 text-lg font-medium text-foreground">
             Os teus espaços
           </h2>
         </div>
@@ -60,15 +61,15 @@ export function WorkspaceGrid({
       </div>
 
       {workspaces.length === 0 ? (
-        <div className="relative border border-dashed border-zinc-800 bg-zinc-950/50 px-6 py-10 text-center">
+        <div className="relative border border-dashed border-border bg-background/50 px-6 py-10 text-center">
           <div className="absolute left-0 top-0 h-0.5 w-full bg-zinc-700" aria-hidden />
-          <FolderOpen className="mx-auto size-8 text-zinc-600" />
-          <p className="mt-3 text-sm text-zinc-500">
+          <FolderOpen className="mx-auto size-8 text-muted-foreground" />
+          <p className="mt-3 text-sm text-muted-foreground">
             Ainda não tens espaços.
           </p>
-          <p className="mt-2 font-mono text-xs text-zinc-600">
+          <p className="mt-2 font-mono text-sm text-muted-foreground">
             Corre{" "}
-            <code className="border border-zinc-800 bg-zinc-900 px-1">
+            <code className="border border-border bg-card px-1">
               npm run prisma:seed
             </code>{" "}
             no servidor ou cria um abaixo.
@@ -87,25 +88,25 @@ export function WorkspaceGrid({
         <ul className="grid gap-3 sm:grid-cols-2">
           {workspaces.map((ws) => (
             <li key={ws.id} className="group relative">
-              <Link to={`/w/${ws.id}`} className={cn(listItemClass, "pr-12")}>
+              <Link to={paths.focus.workspace(ws.id)} className={cn(listItemClass, "pr-12")}>
                 <span className="flex min-w-0 flex-1 items-center gap-3">
-                  <span className="flex size-10 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-900">
+                  <span className="flex size-10 shrink-0 items-center justify-center border border-border bg-card">
                     <WorkspaceIcon icon={ws.icon} size="lg" />
                   </span>
                   <span className="min-w-0">
-                    <span className="block truncate font-medium text-zinc-100">
+                    <span className="block truncate font-medium text-foreground">
                       {ws.name}
                     </span>
-                    <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-wider text-zinc-600">
+                    <span className="mt-0.5 block font-mono text-xs uppercase tracking-wider text-muted-foreground">
                       atualizado {formatRelativeDate(ws.updatedAt)}
                     </span>
                   </span>
                 </span>
-                <ArrowRight className="size-4 shrink-0 text-zinc-600 transition-colors group-hover:text-emerald-500" />
+                <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-emerald-500" />
               </Link>
               <button
                 type="button"
-                className="absolute right-16 top-1/2 -translate-y-1/2 p-1.5 text-zinc-700 opacity-0 transition-opacity hover:text-emerald-400 group-hover:opacity-100"
+                className="absolute right-16 top-1/2 -translate-y-1/2 p-1.5 text-zinc-700 opacity-0 transition-opacity hover:text-emerald-700 dark:hover:text-emerald-400 group-hover:opacity-100"
                 aria-label={`Editar ${ws.name}`}
                 onClick={(e) => {
                   e.preventDefault();

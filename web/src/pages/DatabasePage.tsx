@@ -82,6 +82,7 @@ export function DatabasePage() {
         workspaceName={wsData?.workspace.name ?? "Espaço"}
         workspaceId={workspaceId!}
         databaseName={database.name}
+        databaseIcon={database.icon}
         template={database.template}
         rowCount={database.rows.length}
         views={views}

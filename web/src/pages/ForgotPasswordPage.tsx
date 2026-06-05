@@ -61,30 +61,30 @@ export function ForgotPasswordPage() {
       <AuthBrand />
       <form onSubmit={onSubmit} className={authCardClass}>
         <div className={authCardAccent} aria-hidden />
-        <div className="mb-8 border-b border-zinc-800 pb-6">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-600/90">
+        <div className="mb-8 border-b border-border pb-6">
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-emerald-600/90">
             // recuperar
           </p>
-          <h2 className="mt-2 text-lg font-semibold tracking-tight text-white">
+          <h2 className="mt-2 text-lg font-semibold tracking-tight text-foreground">
             Recuperar palavra-passe
           </h2>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Enviaremos instruções se o email existir na conta.
           </p>
         </div>
 
         {sent ? (
-          <div className="space-y-4 text-sm text-zinc-400">
+          <div className="space-y-4 text-sm text-muted-foreground">
             <p>
               Se o email estiver registado, receberás um link de redefinição
               (em produção). Podes fechar esta página.
             </p>
             {devToken ? (
-              <div className="border border-amber-900/60 bg-amber-950/40 p-3 font-mono text-xs text-amber-200">
-                <p className="mb-2 text-amber-400">// dev — token de teste</p>
+              <div className="border border-amber-900/60 bg-amber-950/40 p-3 font-mono text-sm text-amber-200">
+                <p className="mb-2 text-amber-900 dark:text-amber-400">// dev — token de teste</p>
                 <Link
                   to={`/reset-password?token=${encodeURIComponent(devToken)}`}
-                  className="break-all text-emerald-400 hover:underline"
+                  className="break-all text-emerald-800 dark:text-emerald-400 hover:underline"
                 >
                   Abrir redefinição com token
                 </Link>
@@ -105,7 +105,7 @@ export function ForgotPasswordPage() {
         )}
 
         {formError ? (
-          <p className="mt-4 border border-red-900/80 bg-red-950 px-3 py-2 text-center text-xs text-red-300">
+          <p className="mt-4 border border-red-900/80 bg-red-950 px-3 py-2 text-center text-sm text-red-300">
             {formError}
           </p>
         ) : null}
@@ -123,10 +123,10 @@ export function ForgotPasswordPage() {
           </button>
         ) : null}
 
-        <p className="mt-8 text-center text-sm text-zinc-500">
+        <p className="mt-8 text-center text-sm text-muted-foreground">
           <Link
             to="/login"
-            className="inline-flex items-center gap-1 font-medium text-white hover:text-emerald-500 hover:underline"
+            className="inline-flex items-center gap-1 font-medium text-emerald-800 hover:text-emerald-600 hover:underline dark:text-white dark:hover:text-emerald-500"
           >
             <ArrowLeft className="size-3.5" />
             Voltar ao login

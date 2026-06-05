@@ -30,6 +30,13 @@ const updateProfileSchema = z.object({
   email: z.string().email().optional(),
 });
 
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Indica a palavra-passe actual."),
+  newPassword: z
+    .string()
+    .min(8, "A nova palavra-passe deve ter pelo menos 8 caracteres."),
+});
+
 export class AuthService {
   constructor(private prisma: PrismaClient) {}
 
@@ -51,6 +58,10 @@ export class AuthService {
 
   parseUpdateProfile(raw: unknown) {
     return updateProfileSchema.parse(raw);
+  }
+
+  parseChangePassword(raw: unknown) {
+    return changePasswordSchema.parse(raw);
   }
 
   async register(payload: ReturnType<typeof registerSchema.parse>) {
@@ -230,5 +241,32 @@ export class AuthService {
       },
     });
     return user;
+  }
+
+  async changePassword(
+    userId: string,
+    payload: ReturnType<typeof changePasswordSchema.parse>
+  ) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new AppError(404, {
+        code: "NOT_FOUND",
+        message: "Utilizador não encontrado.",
+      });
+    }
+
+    const ok = await verifyPassword(payload.currentPassword, user.passwordHash);
+    if (!ok) {
+      throw new AppError(401, {
+        code: "UNAUTHORIZED",
+        message: "Palavra-passe actual incorrecta.",
+      });
+    }
+
+    const passwordHash = await hashPassword(payload.newPassword);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
   }
 }

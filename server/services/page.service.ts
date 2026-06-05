@@ -6,13 +6,13 @@ import { assertWorkspaceAccess } from "../utils/workspace-access";
 
 const createPageSchema = z.object({
   title: z.string().min(1).max(200).optional(),
-  icon: z.string().max(8).optional(),
+  icon: z.string().trim().max(32).optional(),
   parentId: z.string().cuid().optional(),
 });
 
 const updatePageSchema = z.object({
   title: z.string().min(1).max(200).optional(),
-  icon: z.string().max(8).nullable().optional(),
+  icon: z.string().trim().max(32).nullable().optional(),
   parentId: z.string().cuid().nullable().optional(),
   sortOrder: z.number().int().min(0).optional(),
 });

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PRODUCT_NAME } from "@/constants/product";
 import type { DashboardSummary } from "@/services/dashboardApi";
+import { paths } from "@/routes/paths";
 import { useUiStore } from "@/store/uiStore";
 import { kbdClass, sectionLabelClass } from "@/styles/designTokens";
 import {
@@ -35,30 +36,30 @@ export function DashboardHeader({
   const metrics = data?.metrics;
 
   return (
-    <header className="border-b border-zinc-800 pb-8">
+    <header className="border-b border-border pb-8">
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div className="space-y-3">
           <p className={sectionLabelClass}>// painel</p>
-          <h1 className="text-3xl font-semibold tracking-tight text-white md:text-4xl">
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
             {greeting()}
             {firstName ? `, ${firstName}` : ""}
           </h1>
-          <p className="max-w-xl text-sm text-zinc-500">
+          <p className="max-w-xl text-sm text-muted-foreground">
             Resumo do teu {PRODUCT_NAME} — tarefas, hábitos e espaços num só
             painel.
           </p>
         </div>
 
         <div className="flex flex-col items-end gap-2 text-right">
-          <div className="inline-flex items-center gap-2 border border-zinc-800 bg-zinc-900 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-500">
+          <div className="inline-flex items-center gap-2 border border-border bg-card px-3 py-1.5 font-mono text-xs uppercase tracking-[0.2em] text-emerald-800 dark:text-emerald-500">
             <span className="relative flex size-2">
               <span className="absolute inline-flex size-full animate-ping bg-emerald-500 opacity-40" />
               <span className="relative inline-flex size-2 bg-emerald-500" />
             </span>
             em linha
           </div>
-          <div className="flex items-center gap-2 font-mono text-xs text-zinc-500">
-            <Calendar className="size-3.5 text-zinc-600" />
+          <div className="flex items-center gap-2 font-mono text-sm text-muted-foreground">
+            <Calendar className="size-3.5 text-muted-foreground" />
             <span className="capitalize">{formatDashboardDate()}</span>
             <span className="text-zinc-700">·</span>
             <span>{formatDashboardClock()}</span>
@@ -82,12 +83,12 @@ export function DashboardHeader({
         {links?.tasksDatabaseId && links?.workspaceId ? (
           <Button variant="outline" size="sm" className="gap-2" asChild>
             <Link
-              to={`/w/${links.workspaceId}/db/${links.tasksDatabaseId}`}
+              to={paths.focus.database(links.workspaceId, links.tasksDatabaseId)}
             >
               <ListTodo className="size-4" />
               Tarefas
               {metrics && metrics.tasksOpen > 0 ? (
-                <span className="font-mono text-[10px] text-emerald-500">
+                <span className="font-mono text-sm text-emerald-800 dark:text-emerald-500">
                   {metrics.tasksOpen}
                 </span>
               ) : null}
@@ -98,12 +99,12 @@ export function DashboardHeader({
         {links?.habitsDatabaseId && links?.workspaceId ? (
           <Button variant="outline" size="sm" className="gap-2" asChild>
             <Link
-              to={`/w/${links.workspaceId}/db/${links.habitsDatabaseId}`}
+              to={paths.focus.database(links.workspaceId, links.habitsDatabaseId)}
             >
               <Flame className="size-4" />
               Hábitos
               {metrics && metrics.habitsTotal > 0 ? (
-                <span className="font-mono text-[10px] text-emerald-500">
+                <span className="font-mono text-sm text-emerald-800 dark:text-emerald-500">
                   {metrics.habitsDoneToday}/{metrics.habitsTotal}
                 </span>
               ) : null}
@@ -112,7 +113,7 @@ export function DashboardHeader({
         ) : null}
 
         {metrics && metrics.pointsToday > 0 ? (
-          <span className="inline-flex items-center gap-2 border border-emerald-900/50 bg-emerald-950/40 px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-emerald-500">
+          <span className="inline-flex items-center gap-2 border border-emerald-900/50 bg-emerald-950/40 px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-emerald-800 dark:text-emerald-500">
             <Zap className="size-3.5" />
             {metrics.pointsToday} XP hoje
           </span>

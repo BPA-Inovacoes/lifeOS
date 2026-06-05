@@ -1,0 +1,118 @@
+export function mockProfile(enabled: boolean) {
+  return {
+    gameModeEnabled: enabled,
+    lifeCoins: 42,
+    lifetimeCoins: 128,
+    totalXp: 1240,
+    progressXp: 1240,
+    level: 8,
+    rank: "E",
+    rankLabel: "Iniciante",
+    rankTitle: "E · Iniciante",
+    playerClass: "adventurer",
+    playerClassLabel: "Aventureiro",
+    phase: "Awakening",
+    phaseKey: "AWAKENING",
+    phaseTheme: "awakening",
+    prestige: 0,
+    prestigeLabel: "Sem prestige",
+    canPrestige: false,
+    ascensionCount: 0,
+    xpInLevel: 240,
+    xpNeeded: 500,
+    xpToNextLevel: 260,
+    levelPercent: 48,
+    avatarIcon: "user",
+    displayTitle: null,
+    currentStreak: 3,
+    tasksCompleted: 12,
+    habitsCompleted: 9,
+    studyHours: 4.5,
+    goalsCompleted: 2,
+    activeDays: 6,
+    deepWorkDays: 2,
+    perfectWeeks: 0,
+    consistencyRate: 20,
+    evolution: {
+      completedLevels: 8,
+      totalLevels: 10,
+      percent: 80,
+    },
+  };
+}
+
+export function mockDashboard() {
+  return {
+    profile: mockProfile(true),
+    attributes: [
+      { key: "health", label: "Saúde", value: 44, percent: 54, tier: "C", delta: 1 },
+      { key: "finance", label: "Finanças", value: 58, percent: 71, tier: "C", delta: 2 },
+      { key: "discipline", label: "Disciplina", value: 68, percent: 83, tier: "B", delta: 3 },
+      { key: "knowledge", label: "Conhecimento", value: 54, percent: 66, tier: "C", delta: 2 },
+    ],
+    achievements: [],
+    missions: [],
+    missionsDaily: [],
+    missionsWeekly: [],
+    missionsMonthly: [],
+    challenges: [],
+    activityFeed: [
+      {
+        id: "1",
+        type: "client.closed",
+        message: "Cliente fechado · +300 XP",
+        xpDelta: 300,
+        createdAt: new Date().toISOString(),
+      },
+    ],
+    weeklyXp: [],
+    xpDistribution: {
+      tasks: 320,
+      habits: 140,
+      goals: 80,
+      studies: 110,
+      clients: 300,
+    },
+    heatmap: [],
+    prestigeHistory: [],
+  };
+}
+
+export function mockShop(lifeCoins = 200) {
+  return {
+    balance: { lifeCoins, lifetimeCoins: 500 },
+    equipped: { avatarIcon: "user", displayTitle: null },
+    items: [
+      {
+        id: "title-rookie",
+        type: "TITLE" as const,
+        label: "Recruta LifeOS",
+        description: "Para quem está a começar a jornada.",
+        icon: "sparkles",
+        price: 50,
+        rarity: "COMMON" as const,
+        payload: "Recruta LifeOS",
+        minLevel: 1,
+        minPrestige: 0,
+        locked: false,
+        owned: false,
+        equipped: false,
+      },
+      {
+        id: "avatar-scholar",
+        type: "AVATAR" as const,
+        label: "Avatar Estudioso",
+        description: "Cosmético de estudo.",
+        icon: "graduation-cap",
+        price: 80,
+        rarity: "RARE" as const,
+        payload: "scholar",
+        minLevel: 1,
+        minPrestige: 0,
+        locked: false,
+        owned: true,
+        equipped: false,
+      },
+    ],
+  };
+}

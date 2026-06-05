@@ -37,16 +37,16 @@ function LogicToggle({
   onChange: (logic: FilterLogic) => void;
 }) {
   return (
-    <div className="flex items-center gap-1 rounded-none border border-zinc-800 p-0.5">
+    <div className="flex items-center gap-1 rounded-none border border-border p-0.5">
       {(["and", "or"] as const).map((mode) => (
         <button
           key={mode}
           type="button"
           className={cn(
-            "px-2.5 py-1 font-mono text-[10px] uppercase transition-colors",
+            "px-2.5 py-1 font-mono text-xs uppercase transition-colors",
             logic === mode
-              ? "bg-emerald-900/50 text-emerald-400"
-              : "text-zinc-500 hover:text-zinc-300"
+              ? "bg-emerald-900/50 text-emerald-800 dark:text-emerald-400"
+              : "text-muted-foreground hover:text-foreground"
           )}
           aria-pressed={logic === mode}
           onClick={() => onChange(mode)}
@@ -111,9 +111,9 @@ export function TableFilters({
   const activeColumnFilters = chips.filter((c) => c.id !== "__search__").length;
 
   return (
-    <div className="space-y-3 border-b border-zinc-800 px-4 py-3">
+    <div className="space-y-3 border-b border-border px-4 py-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-zinc-500">
+        <span className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
           <Filter className="size-3.5 text-emerald-600/80" />
           Filtros
           {activeColumnFilters > 1 ? (
@@ -123,7 +123,7 @@ export function TableFilters({
             />
           ) : null}
         </span>
-        <span className="font-mono text-[10px] tabular-nums text-zinc-600">
+        <span className="font-mono text-xs tabular-nums text-muted-foreground">
           {active
             ? `${filteredCount} de ${totalRows}`
             : `${totalRows} ${totalRows === 1 ? "linha" : "linhas"}`}
@@ -135,15 +135,15 @@ export function TableFilters({
           {chips.map((chip) => (
             <span
               key={chip.id}
-              className="inline-flex items-center gap-1 border border-zinc-800 bg-zinc-900/80 px-2 py-0.5 font-mono text-[10px] text-zinc-400"
+              className="inline-flex items-center gap-1 border border-border bg-secondary/80 px-2 py-0.5 font-mono text-sm text-muted-foreground"
             >
-              <span className="text-zinc-500">{chip.label}:</span>
-              <span className="max-w-[12rem] truncate text-zinc-300">
+              <span className="text-muted-foreground">{chip.label}:</span>
+              <span className="max-w-[12rem] truncate text-foreground">
                 {chip.value}
               </span>
               <button
                 type="button"
-                className="p-0.5 text-zinc-600 hover:text-zinc-200"
+                className="p-0.5 text-muted-foreground hover:text-foreground"
                 aria-label={`Remover filtro ${chip.label}`}
                 onClick={() => {
                   if (chip.id === "__search__") {
@@ -160,7 +160,7 @@ export function TableFilters({
           {active ? (
             <button
               type="button"
-              className="px-2 py-0.5 font-mono text-[10px] uppercase text-zinc-600 hover:text-emerald-500"
+              className="px-2 py-0.5 font-mono text-xs uppercase text-muted-foreground hover:text-emerald-500"
               onClick={() => onChange(emptyTableFilters())}
             >
               Limpar tudo

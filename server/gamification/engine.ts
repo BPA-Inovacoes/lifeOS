@@ -4,11 +4,12 @@ import { ACHIEVEMENTS, achievementMetric } from "./achievements";
 import {
   ATTRIBUTE_KEYS,
   attributeLabel,
-  normalizeAttributeKey,
+  mergeLegacyAttributeValues,
 } from "./attributes";
 import { activityEventType } from "./events";
+import { lifeCoinsForActivity, lifeCoinsForMission } from "./life-coins";
 import { levelProgress, rankTitleForLevel } from "./levels";
-import { DAILY_MISSIONS, missionIncrement, type DailyMissionKey } from "./missions";
+import { DAILY_MISSIONS, missionIncrement, type MissionKey, ALL_MISSIONS, WEEKLY_MISSIONS, MONTHLY_MISSIONS, type MissionDef } from "./missions";
 import { phaseForLevel } from "./phases";
 import { canPrestige } from "./prestige";
 import {
@@ -16,14 +17,18 @@ import {
   baseXpForActivity,
   type ActivityContext,
 } from "./xp-rules";
-import { addDays, toDayDate, toDayKey } from "../utils/day";
+import { addDays, startOfMonth, startOfWeek, toDayDate, toDayKey } from "../utils/day";
+import { ensureRpgProperties } from "../utils/ensure-rpg-properties";
 import { logger } from "../utils/logger";
 import { workspaceIdsForUser } from "../utils/user-workspaces";
 
 export type GamificationResult = {
   xpGained: number;
+  bonusXp: number;
+  lifeCoinsGained: number;
   levelUp: boolean;
   newLevel?: number;
+  rankTitle?: string;
   achievementsUnlocked: { id: string; name: string; xpReward: number }[];
   missionCompleted: { key: string; title: string; xpReward: number }[];
   perfectWeekAwarded: boolean;
@@ -51,11 +56,16 @@ function activeDayStreak(dayKeys: string[]): number {
 }
 
 export class GamificationEngine {
+  private rpgPropertiesEnsured = false;
+  private achievementsCatalogEnsured = false;
+
   constructor(private prisma: PrismaClient) {}
 
   private emptyResult(): GamificationResult {
     return {
       xpGained: 0,
+      bonusXp: 0,
+      lifeCoinsGained: 0,
       levelUp: false,
       achievementsUnlocked: [],
       missionCompleted: [],
@@ -63,15 +73,20 @@ export class GamificationEngine {
     };
   }
 
-  async ensureProfile(userId: string) {
-    await this.ensureAchievementsCatalog();
-    await this.ensureAttributes(userId);
+  /** Leitura rápida — sem upserts de catálogo, atributos ou missões. */
+  async loadProfile(userId: string) {
+    if (!this.rpgPropertiesEnsured) {
+      await ensureRpgProperties(this.prisma);
+      this.rpgPropertiesEnsured = true;
+    }
 
     let profile = await this.prisma.userGameProfile.findUnique({
       where: { userId },
     });
 
     if (!profile) {
+      await this.ensureAchievementsCatalog();
+      await this.ensureAttributes(userId);
       profile = await this.prisma.userGameProfile.create({
         data: {
           userId,
@@ -80,64 +95,86 @@ export class GamificationEngine {
         },
       });
       await this.rebuildProfile(userId);
-      profile = await this.prisma.userGameProfile.findUniqueOrThrow({
-        where: { userId },
-      });
-    } else {
-      await this.migrateLegacyAttributes(userId);
-      await this.syncDerivedProfile(userId, profile);
-      profile = await this.prisma.userGameProfile.findUniqueOrThrow({
+      await this.ensureMissions(userId);
+      return this.prisma.userGameProfile.findUniqueOrThrow({
         where: { userId },
       });
     }
 
-    await this.ensureDailyMissions(userId);
+    await this.syncDerivedProfile(userId, profile);
+    return this.prisma.userGameProfile.findUniqueOrThrow({
+      where: { userId },
+    });
+  }
+
+  /** Setup completo — actividade, toggle, prestige. */
+  async ensureProfile(userId: string) {
+    const profile = await this.loadProfile(userId);
+    await this.ensureAttributesIfNeeded(userId);
+    await this.ensureMissions(userId);
     return profile;
   }
 
   async ensureAchievementsCatalog() {
-    for (const achievement of ACHIEVEMENTS) {
-      await this.prisma.achievementDefinition.upsert({
-        where: { id: achievement.id },
-        create: achievement,
-        update: {
-          name: achievement.name,
-          description: achievement.description,
-          icon: achievement.icon,
-          rarity: achievement.rarity,
-          category: achievement.category,
-          xpReward: achievement.xpReward,
-          criteriaKey: achievement.criteriaKey,
-          criteriaValue: achievement.criteriaValue,
-          sortOrder: achievement.sortOrder,
+    if (this.achievementsCatalogEnsured) return;
+
+    await Promise.all(
+      ACHIEVEMENTS.map((achievement) =>
+        this.prisma.achievementDefinition.upsert({
+          where: { id: achievement.id },
+          create: achievement,
+          update: {
+            name: achievement.name,
+            description: achievement.description,
+            icon: achievement.icon,
+            rarity: achievement.rarity,
+            category: achievement.category,
+            xpReward: achievement.xpReward,
+            criteriaKey: achievement.criteriaKey,
+            criteriaValue: achievement.criteriaValue,
+            sortOrder: achievement.sortOrder,
+          },
+        })
+      )
+    );
+
+    this.achievementsCatalogEnsured = true;
+  }
+
+  async migrateLegacyAttributes(userId: string) {
+    const attrs = await this.prisma.userAttribute.findMany({ where: { userId } });
+    if (attrs.length === 0) return;
+
+    const hasLegacy = attrs.some(
+      (attr) => !ATTRIBUTE_KEYS.includes(attr.key as (typeof ATTRIBUTE_KEYS)[number])
+    );
+    if (!hasLegacy) return;
+
+    const merged = mergeLegacyAttributeValues(
+      attrs.map((attr) => ({ key: attr.key, value: attr.value }))
+    );
+
+    await this.prisma.userAttribute.deleteMany({ where: { userId } });
+
+    for (const key of ATTRIBUTE_KEYS) {
+      await this.prisma.userAttribute.create({
+        data: {
+          userId,
+          key,
+          value: Math.round(merged[key] * 10) / 10,
+          lastDelta: 0,
         },
       });
     }
   }
 
-  async migrateLegacyAttributes(userId: string) {
-    const attrs = await this.prisma.userAttribute.findMany({ where: { userId } });
-    for (const attr of attrs) {
-      const canonical = normalizeAttributeKey(attr.key);
-      if (!canonical || canonical === attr.key) continue;
-
-      const existing = await this.prisma.userAttribute.findFirst({
-        where: { userId, key: canonical },
-      });
-
-      if (existing) {
-        await this.prisma.userAttribute.update({
-          where: { id: existing.id },
-          data: { value: { increment: attr.value } },
-        });
-        await this.prisma.userAttribute.delete({ where: { id: attr.id } });
-      } else {
-        await this.prisma.userAttribute.update({
-          where: { id: attr.id },
-          data: { key: canonical },
-        });
-      }
+  async ensureAttributesIfNeeded(userId: string) {
+    const count = await this.prisma.userAttribute.count({ where: { userId } });
+    if (count >= ATTRIBUTE_KEYS.length) {
+      await this.migrateLegacyAttributes(userId);
+      return;
     }
+    await this.ensureAttributes(userId);
   }
 
   async ensureAttributes(userId: string) {
@@ -151,44 +188,154 @@ export class GamificationEngine {
     }
   }
 
+  async ensureMissions(userId: string) {
+    const [habitCount, profile] = await Promise.all([
+      this.countHabits(userId),
+      this.prisma.userGameProfile.findUnique({ where: { userId } }),
+    ]);
+    const currentStreak = profile?.currentStreak ?? 0;
+
+    await Promise.all([
+      this.ensureMissionPeriod(
+        userId,
+        "DAILY",
+        toDayDate(),
+        DAILY_MISSIONS,
+        habitCount,
+        currentStreak
+      ),
+      this.ensureMissionPeriod(
+        userId,
+        "WEEKLY",
+        startOfWeek(),
+        WEEKLY_MISSIONS,
+        habitCount,
+        currentStreak
+      ),
+      this.ensureMissionPeriod(
+        userId,
+        "MONTHLY",
+        startOfMonth(),
+        MONTHLY_MISSIONS,
+        habitCount,
+        currentStreak
+      ),
+    ]);
+  }
+
   async ensureDailyMissions(userId: string) {
-    const today = toDayDate();
-    const habitCount = await this.countHabits(userId);
+    await this.ensureMissions(userId);
+  }
 
-    for (const mission of DAILY_MISSIONS) {
-      const target =
-        mission.key === "habits-all"
-          ? Math.max(1, habitCount)
-          : mission.defaultTarget;
+  private async ensureMissionPeriod(
+    userId: string,
+    period: import("@prisma/client").MissionPeriod,
+    periodStart: Date,
+    missions: MissionDef[],
+    habitCount: number,
+    currentStreak: number
+  ) {
+    const existing = await this.prisma.dailyMissionProgress.findMany({
+      where: { userId, period, date: periodStart },
+      select: { missionKey: true },
+    });
+    const existingKeys = new Set(existing.map((row) => row.missionKey));
 
+    const pending = missions.filter((mission) => {
+      if (mission.key === "habits-all" || mission.key === "streak-30") return true;
+      return !existingKeys.has(mission.key);
+    });
+
+    if (pending.length === 0) return;
+
+    await Promise.all(
+      pending.map((mission) =>
+        this.upsertMissionProgress(
+          userId,
+          period,
+          periodStart,
+          mission,
+          habitCount,
+          currentStreak
+        )
+      )
+    );
+  }
+
+  private async upsertMissionProgress(
+    userId: string,
+    period: import("@prisma/client").MissionPeriod,
+    periodStart: Date,
+    mission: MissionDef,
+    habitCount: number,
+    currentStreak: number
+  ) {
+    let target = mission.defaultTarget;
+    if (mission.key === "habits-all") {
+      target = Math.max(1, habitCount);
+    }
+
+    if (mission.key === "streak-30") {
+      target = 30;
+      const progress = Math.min(30, currentStreak);
       await this.prisma.dailyMissionProgress.upsert({
         where: {
-          userId_missionKey_date: {
+          userId_missionKey_date_period: {
             userId,
             missionKey: mission.key,
-            date: today,
+            date: periodStart,
+            period,
           },
         },
         create: {
           userId,
           missionKey: mission.key,
-          date: today,
+          period,
+          date: periodStart,
           target,
+          progress,
+          completed: progress >= target,
           xpReward: mission.xpReward,
         },
         update: {
           target,
+          progress,
+          completed: progress >= target,
           xpReward: mission.xpReward,
         },
       });
+      return;
     }
+
+    await this.prisma.dailyMissionProgress.upsert({
+      where: {
+        userId_missionKey_date_period: {
+          userId,
+          missionKey: mission.key,
+          date: periodStart,
+          period,
+        },
+      },
+      create: {
+        userId,
+        missionKey: mission.key,
+        period,
+        date: periodStart,
+        target,
+        xpReward: mission.xpReward,
+      },
+      update: {
+        target,
+        xpReward: mission.xpReward,
+      },
+    });
   }
 
   private async syncDerivedProfile(userId: string, profile: UserGameProfile) {
     const progress = levelProgress(profile.totalXp);
     const updates: Prisma.UserGameProfileUpdateInput = {};
 
-    if (profile.rankTitle !== progress.rank) updates.rankTitle = progress.rank;
+    if (profile.rankTitle !== progress.rankTitle) updates.rankTitle = progress.rankTitle;
     if (profile.level !== progress.level) updates.level = progress.level;
     if (profile.phase !== progress.phase.key) updates.phase = progress.phase.key;
     if (profile.lifetimeXp < profile.totalXp) updates.lifetimeXp = profile.totalXp;
@@ -286,7 +433,7 @@ export class GamificationEngine {
         totalXp: progressXp,
         lifetimeXp,
         level: progress.level,
-        rankTitle: progress.rank,
+        rankTitle: progress.rankTitle,
         phase: progress.phase.key,
         tasksCompleted,
         habitsCompleted,
@@ -316,7 +463,7 @@ export class GamificationEngine {
   }
 
   private inferContextFromPointsEvent(event: {
-    source: "TASK" | "HABIT" | "GOAL" | "STUDY";
+    source: "TASK" | "HABIT" | "GOAL" | "STUDY" | "CLIENT";
     points: number;
   }): ActivityContext {
     switch (event.source) {
@@ -334,6 +481,12 @@ export class GamificationEngine {
         };
       case "GOAL":
         return { type: "goal.completed", source: "GOAL" };
+      case "CLIENT":
+        return {
+          type: "client.closed",
+          source: "CLIENT",
+          points: event.points,
+        };
       case "STUDY":
         return {
           type: "study.session.completed",
@@ -415,7 +568,7 @@ export class GamificationEngine {
         totalXp: nextProgressXp,
         lifetimeXp: profile.lifetimeXp + xpGained,
         level: nextProgress.level,
-        rankTitle: nextProgress.rank,
+        rankTitle: nextProgress.rankTitle,
         phase: nextProgress.phase.key,
         currentStreak,
         lastActiveDate: today,
@@ -439,8 +592,11 @@ export class GamificationEngine {
 
     const result: GamificationResult = {
       xpGained,
+      bonusXp: 0,
+      lifeCoinsGained: 0,
       levelUp: nextProgress.level > previousLevel,
       newLevel: nextProgress.level > previousLevel ? nextProgress.level : undefined,
+      rankTitle: nextProgress.level > previousLevel ? nextProgress.rankTitle : undefined,
       achievementsUnlocked: [],
       missionCompleted: [],
       perfectWeekAwarded: false,
@@ -453,14 +609,25 @@ export class GamificationEngine {
       await this.logActivity(
         userId,
         "level.up",
-        `Subiste para ${nextProgress.rank} (Lv.${nextProgress.level})`,
+        `Subiste para ${nextProgress.rankTitle} (Lv.${nextProgress.level})`,
         0,
         { level: nextProgress.level }
       );
     }
 
-    result.missionCompleted = await this.updateMissions(userId, ctx, xpGained);
+    result.missionCompleted = await this.updateMissions(userId, ctx, xpGained, {
+      currentStreak,
+    });
     result.perfectWeekAwarded = await this.maybeAwardPerfectWeek(userId, ctx);
+    if (result.perfectWeekAwarded) {
+      const extra = await this.updateMissions(
+        userId,
+        { type: "week.perfect" },
+        0,
+        { perfectWeekAwarded: true, currentStreak }
+      );
+      result.missionCompleted.push(...extra);
+    }
     result.achievementsUnlocked = await this.checkAchievements(userId);
 
     const bonusXp =
@@ -471,6 +638,21 @@ export class GamificationEngine {
     if (bonusXp > 0) {
       await this.applyBonusXp(userId, bonusXp);
     }
+    result.bonusXp = bonusXp;
+
+    const coinsFromActivity = lifeCoinsForActivity(ctx, xpGained);
+    const coinsFromMissions = result.missionCompleted.reduce(
+      (sum, item) => sum + lifeCoinsForMission(item.xpReward),
+      0
+    );
+    const coinsFromPerfectWeek = result.perfectWeekAwarded
+      ? lifeCoinsForActivity({ type: "week.perfect" }, 0)
+      : 0;
+    const totalCoins = coinsFromActivity + coinsFromMissions + coinsFromPerfectWeek;
+    if (totalCoins > 0) {
+      await this.awardLifeCoins(userId, totalCoins);
+    }
+    result.lifeCoinsGained = totalCoins;
 
     logger.info(
       {
@@ -502,8 +684,19 @@ export class GamificationEngine {
         totalXp: profile.totalXp + bonusXp,
         lifetimeXp: profile.lifetimeXp + bonusXp,
         level: nextProgress.level,
-        rankTitle: nextProgress.rank,
+        rankTitle: nextProgress.rankTitle,
         phase: nextProgress.phase.key,
+      },
+    });
+  }
+
+  private async awardLifeCoins(userId: string, amount: number) {
+    if (amount <= 0) return;
+    await this.prisma.userGameProfile.update({
+      where: { userId },
+      data: {
+        lifeCoins: { increment: amount },
+        lifetimeCoins: { increment: amount },
       },
     });
   }
@@ -518,6 +711,8 @@ export class GamificationEngine {
         return `Sessão de estudo concluída · +${xpGained} XP`;
       case "goal.completed":
         return `Objectivo atingido · +${xpGained} XP`;
+      case "client.closed":
+        return `Cliente fechado · +${xpGained} XP`;
       default:
         return `Progresso registado · +${xpGained} XP`;
     }
@@ -612,7 +807,11 @@ export class GamificationEngine {
     userId: string,
     type: Exclude<
       ActivityContext["type"],
-      "task.completed" | "habit.completed" | "study.session.completed" | "goal.completed"
+      | "task.completed"
+      | "habit.completed"
+      | "study.session.completed"
+      | "goal.completed"
+      | "client.closed"
     >,
     metadata: Record<string, unknown> = {}
   ) {
@@ -630,7 +829,11 @@ export class GamificationEngine {
     userId: string,
     type: Exclude<
       ActivityContext["type"],
-      "task.completed" | "habit.completed" | "study.session.completed" | "goal.completed"
+      | "task.completed"
+      | "habit.completed"
+      | "study.session.completed"
+      | "goal.completed"
+      | "client.closed"
     >,
     metadata: Record<string, unknown>
   ) {
@@ -650,6 +853,15 @@ export class GamificationEngine {
         return `prestige:${userId}:${String(metadata.prestigeLevel ?? "unknown")}`;
       case "streak.updated":
         return `streak:${userId}:${todayKey}`;
+      case "finance.method.step":
+      case "finance.review.completed":
+      case "finance.review.streak":
+      case "finance.goal.reached":
+      case "finance.budget.respected":
+      case "finance.method.completed":
+        return undefined;
+      default:
+        return undefined;
     }
   }
 
@@ -697,45 +909,106 @@ export class GamificationEngine {
     return results;
   }
 
-  async updateMissions(userId: string, ctx: ActivityContext, xpGained: number) {
-    await this.ensureDailyMissions(userId);
-    const today = toDayDate();
-    const missions = await this.prisma.dailyMissionProgress.findMany({
-      where: { userId, date: today, completed: false },
-    });
+  async updateMissions(
+    userId: string,
+    ctx: ActivityContext,
+    xpGained: number,
+    extras?: { perfectWeekAwarded?: boolean; currentStreak?: number }
+  ) {
+    await this.ensureMissions(userId);
+    const profile = await this.prisma.userGameProfile.findUnique({ where: { userId } });
+    const streak = extras?.currentStreak ?? profile?.currentStreak ?? 0;
+
+    const buckets: {
+      period: import("@prisma/client").MissionPeriod;
+      date: Date;
+    }[] = [
+      { period: "DAILY", date: toDayDate() },
+      { period: "WEEKLY", date: startOfWeek() },
+      { period: "MONTHLY", date: startOfMonth() },
+    ];
 
     const completed: { key: string; title: string; xpReward: number }[] = [];
-    for (const mission of missions) {
-      const increment = missionIncrement(mission.missionKey as DailyMissionKey, ctx, xpGained);
-      if (increment <= 0) continue;
 
-      const progress = Math.min(mission.target, mission.progress + increment);
-      const isComplete = progress >= mission.target;
-      await this.prisma.dailyMissionProgress.update({
-        where: { id: mission.id },
-        data: {
-          progress,
-          completed: isComplete,
+    for (const bucket of buckets) {
+      const missions = await this.prisma.dailyMissionProgress.findMany({
+        where: {
+          userId,
+          period: bucket.period,
+          date: bucket.date,
+          completed: false,
         },
       });
 
-      if (!isComplete) continue;
-      const definition = DAILY_MISSIONS.find((item) => item.key === mission.missionKey)!;
-      await this.recordDerivedEvent(userId, "mission.completed", {
-        missionKey: mission.missionKey,
-      });
-      await this.logActivity(
-        userId,
-        "mission.completed",
-        `Missão concluída: ${definition.title}`,
-        mission.xpReward,
-        { missionKey: mission.missionKey }
-      );
-      completed.push({
-        key: mission.missionKey,
-        title: definition.title,
-        xpReward: mission.xpReward,
-      });
+      for (const mission of missions) {
+        if (mission.missionKey === "streak-30") {
+          const progress = Math.min(mission.target, streak);
+          const isComplete = progress >= mission.target;
+          if (progress !== mission.progress || isComplete !== mission.completed) {
+            await this.prisma.dailyMissionProgress.update({
+              where: { id: mission.id },
+              data: { progress, completed: isComplete },
+            });
+          }
+          if (isComplete && !mission.completed) {
+            const definition = ALL_MISSIONS.find((item) => item.key === mission.missionKey)!;
+            await this.recordDerivedEvent(userId, "mission.completed", {
+              missionKey: mission.missionKey,
+              period: bucket.period,
+            });
+            await this.logActivity(
+              userId,
+              "mission.completed",
+              `Missão concluída: ${definition.title}`,
+              mission.xpReward,
+              { missionKey: mission.missionKey, period: bucket.period }
+            );
+            completed.push({
+              key: mission.missionKey,
+              title: definition.title,
+              xpReward: mission.xpReward,
+            });
+          }
+          continue;
+        }
+
+        const increment = missionIncrement(
+          mission.missionKey as MissionKey,
+          ctx,
+          xpGained,
+          {
+            currentStreak: streak,
+            perfectWeekAwarded: extras?.perfectWeekAwarded,
+          }
+        );
+        if (increment <= 0) continue;
+
+        const progress = Math.min(mission.target, mission.progress + increment);
+        const isComplete = progress >= mission.target;
+        await this.prisma.dailyMissionProgress.update({
+          where: { id: mission.id },
+          data: { progress, completed: isComplete },
+        });
+
+        if (!isComplete) continue;
+        const definition = ALL_MISSIONS.find((item) => item.key === mission.missionKey)!;
+        await this.recordDerivedEvent(userId, "mission.completed", {
+          missionKey: mission.missionKey,
+          period: bucket.period,
+        });
+        await this.logActivity(
+          userId,
+          "mission.completed",
+          `Missão concluída: ${definition.title}`,
+          mission.xpReward,
+          { missionKey: mission.missionKey, period: bucket.period }
+        );
+        completed.push({
+          key: mission.missionKey,
+          title: definition.title,
+          xpReward: mission.xpReward,
+        });
+      }
     }
 
     return completed;
@@ -801,7 +1074,7 @@ export class GamificationEngine {
   }
 
   async setGameMode(userId: string, enabled: boolean) {
-    await this.ensureProfile(userId);
+    await this.loadProfile(userId);
     return this.prisma.userGameProfile.update({
       where: { userId },
       data: { gameModeEnabled: enabled },

@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Calendar,
+  Briefcase,
   Flame,
   FolderKanban,
   GraduationCap,
@@ -14,6 +15,7 @@ export const WORKSPACE_DATABASE_TEMPLATES = [
   "HABITS",
   "GOALS",
   "STUDIES",
+  "CLIENTS",
   "PROJECTS",
   "WEEKLY_PLANNING",
 ] as const;
@@ -57,6 +59,12 @@ export const WORKSPACE_DATABASE_OPTIONS: WorkspaceDatabaseOption[] = [
     label: "Estudos",
     description: "Disciplinas e exames",
     Icon: GraduationCap,
+  },
+  {
+    id: "CLIENTS",
+    label: "Clientes",
+    description: "Pipeline comercial e fechos",
+    Icon: Briefcase,
   },
   {
     id: "PROJECTS",

@@ -27,7 +27,7 @@ export function WorkspaceIcon({
       className={cn(
         sizeClass[size],
         "shrink-0 stroke-[1.5]",
-        active ? "text-emerald-500/90" : "text-zinc-400",
+        active ? "text-emerald-800/90 dark:text-emerald-500/90" : "text-muted-foreground",
         className
       )}
       aria-hidden

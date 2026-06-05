@@ -6,7 +6,7 @@ import type { BreadcrumbItem } from "@/utils/buildPageBreadcrumbs";
 export function PageBreadcrumbs({ items }: { items: BreadcrumbItem[] }) {
   return (
     <nav
-      className="flex flex-wrap items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-zinc-600"
+      className="flex flex-wrap items-center gap-1 font-mono text-xs uppercase tracking-wider text-muted-foreground"
       aria-label="Navegação estrutural"
     >
       {items.map((item, i) => (
@@ -17,7 +17,7 @@ export function PageBreadcrumbs({ items }: { items: BreadcrumbItem[] }) {
               {item.label}
             </Link>
           ) : (
-            <span className="text-zinc-400">{item.label}</span>
+            <span className="text-muted-foreground">{item.label}</span>
           )}
         </span>
       ))}

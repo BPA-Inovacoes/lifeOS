@@ -5,7 +5,7 @@ export function QuoteBlock({ block, editable, onChange, slash }: BlockRendererPr
   const text = (block.content.text as string) ?? "";
 
   return (
-    <blockquote className="border-l-2 border-emerald-600/60 pl-4 text-zinc-500">
+    <blockquote className="border-l-2 border-emerald-600/60 pl-4 text-muted-foreground">
       <SlashableText
         text={text}
         editable={editable}

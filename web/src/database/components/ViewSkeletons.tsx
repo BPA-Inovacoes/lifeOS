@@ -8,7 +8,7 @@ function BoardSkeleton() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div
           key={i}
-          className="flex w-72 shrink-0 flex-col border border-zinc-800 bg-zinc-950"
+          className="flex w-72 shrink-0 flex-col border border-border bg-background"
         >
           <Bone className="h-1 w-full" />
           <Bone className="mx-3 mt-3 h-4 w-24" />
@@ -25,13 +25,13 @@ function BoardSkeleton() {
 function CalendarSkeleton() {
   return (
     <DataPanel>
-      <div className="grid grid-cols-7 border-b border-zinc-800">
+      <div className="grid grid-cols-7 border-b border-border">
         {Array.from({ length: 7 }).map((_, i) => (
           <Bone key={i} className="h-8" />
         ))}
       </div>
       {Array.from({ length: 5 }).map((_, wi) => (
-        <div key={wi} className="grid grid-cols-7 border-b border-zinc-800/60">
+        <div key={wi} className="grid grid-cols-7 border-b border-border/60">
           {Array.from({ length: 7 }).map((_, di) => (
             <Bone key={di} className="min-h-[88px]" />
           ))}

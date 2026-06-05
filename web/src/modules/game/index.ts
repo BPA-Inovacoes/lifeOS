@@ -16,3 +16,5 @@ export { WeeklyProgressCard } from "./components/WeeklyProgressCard";
 export { XPBar } from "./components/XPBar";
 export { XpDistributionCard } from "./components/XpDistributionCard";
 export { useGameMode } from "./hooks/useGameMode";
+export { useGameDashboard } from "./hooks/useGameDashboard";
+export { useGamePageBootstrap } from "./hooks/useGamePageBootstrap";

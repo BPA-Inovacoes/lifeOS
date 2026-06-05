@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 type DatabaseNavIconProps = {
   template: string;
   name?: string;
+  /** Chave Lucide (bases CUSTOM) — ex. briefcase, laptop */
+  icon?: string | null;
   active?: boolean;
   className?: string;
   size?: "sm" | "md" | "lg";
@@ -18,18 +20,19 @@ const sizeClass = {
 export function DatabaseNavIcon({
   template,
   name,
+  icon,
   active = false,
   className,
   size = "md",
 }: DatabaseNavIconProps) {
-  const Icon = resolveDatabaseIcon(template, name);
+  const Icon = resolveDatabaseIcon(template, name, icon);
 
   return (
     <Icon
       className={cn(
         sizeClass[size],
         "shrink-0 stroke-[1.5]",
-        active ? "text-emerald-500/90" : "text-zinc-400",
+        active ? "text-emerald-800/90 dark:text-emerald-500/90" : "text-muted-foreground",
         className
       )}
       aria-hidden

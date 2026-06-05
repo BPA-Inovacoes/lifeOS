@@ -74,15 +74,15 @@ export function ResetPasswordPage() {
       <AuthBrand />
       <form onSubmit={onSubmit} className={authCardClass}>
         <div className={authCardAccent} aria-hidden />
-        <div className="mb-8 border-b border-zinc-800 pb-6">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-600/90">
+        <div className="mb-8 border-b border-border pb-6">
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-emerald-600/90">
             // redefinir
           </p>
-          <h2 className="mt-2 text-lg font-semibold tracking-tight text-white">
+          <h2 className="mt-2 text-lg font-semibold tracking-tight text-foreground">
             Nova palavra-passe
           </h2>
           {!token ? (
-            <p className="mt-2 text-sm text-amber-400">
+            <p className="mt-2 text-sm text-amber-900 dark:text-amber-400">
               Token inválido ou em falta. Pede um novo link em{" "}
               <Link to="/forgot-password" className="underline">
                 recuperar palavra-passe
@@ -103,7 +103,7 @@ export function ResetPasswordPage() {
             trailing={
               <button
                 type="button"
-                className="text-zinc-500 hover:text-zinc-300"
+                className="text-muted-foreground hover:text-foreground"
                 aria-label={showPassword ? "Ocultar" : "Mostrar"}
                 onClick={() => setShowPassword((v) => !v)}
               >
@@ -128,7 +128,7 @@ export function ResetPasswordPage() {
         </div>
 
         {formError ? (
-          <p className="mt-4 border border-red-900/80 bg-red-950 px-3 py-2 text-center text-xs text-red-300">
+          <p className="mt-4 border border-red-900/80 bg-red-950 px-3 py-2 text-center text-sm text-red-300">
             {formError}
           </p>
         ) : null}
@@ -144,10 +144,10 @@ export function ResetPasswordPage() {
           {busy ? "A GUARDAR…" : "GUARDAR"}
         </button>
 
-        <p className="mt-8 text-center text-sm text-zinc-500">
+        <p className="mt-8 text-center text-sm text-muted-foreground">
           <Link
             to="/login"
-            className="font-medium text-white hover:text-emerald-500 hover:underline"
+            className="font-medium text-emerald-800 hover:text-emerald-600 hover:underline dark:text-white dark:hover:text-emerald-500"
           >
             Voltar ao login
           </Link>

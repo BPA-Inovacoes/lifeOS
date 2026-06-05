@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import type { HeatmapCell } from "@/services/databaseApi";
 
 const LEVEL_CLASS: Record<number, string> = {
-  0: "bg-zinc-900",
+  0: "bg-card",
   1: "bg-emerald-950",
   2: "bg-emerald-900/70",
   3: "bg-emerald-800/80",

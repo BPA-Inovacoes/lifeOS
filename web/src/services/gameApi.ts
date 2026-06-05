@@ -2,10 +2,16 @@ import { apiJson } from "@/services/http";
 
 export type GameProfile = {
   gameModeEnabled: boolean;
+  lifeCoins: number;
+  lifetimeCoins: number;
   totalXp: number;
   progressXp: number;
   level: number;
   rank: string;
+  rankLabel: string;
+  rankTitle: string;
+  playerClass: string;
+  playerClassLabel: string;
   phase: string;
   phaseKey: string;
   phaseTheme: string;
@@ -18,6 +24,7 @@ export type GameProfile = {
   xpToNextLevel: number;
   levelPercent: number;
   avatarIcon: string;
+  displayTitle: string | null;
   currentStreak: number;
   tasksCompleted: number;
   habitsCompleted: number;
@@ -60,10 +67,24 @@ export type GameMission = {
   title: string;
   description: string;
   icon: string;
+  period?: "DAILY" | "WEEKLY" | "MONTHLY";
   target: number;
   progress: number;
   completed: boolean;
   xpReward: number;
+};
+
+export type GameChallenge = {
+  id: string;
+  type: "dungeon" | "boss";
+  title: string;
+  workspaceId: string;
+  databaseId: string;
+  rowId: string;
+  status: string;
+  progress: number;
+  xpReward: number;
+  completed: boolean;
 };
 
 export type GameActivityItem = {
@@ -91,6 +112,10 @@ export type GameDashboard = {
   attributes: GameAttribute[];
   achievements: GameAchievement[];
   missions: GameMission[];
+  missionsDaily: GameMission[];
+  missionsWeekly: GameMission[];
+  missionsMonthly: GameMission[];
+  challenges: GameChallenge[];
   activityFeed: GameActivityItem[];
   weeklyXp: {
     date: string;
@@ -105,6 +130,7 @@ export type GameDashboard = {
     habits: number;
     goals: number;
     studies: number;
+    clients: number;
   };
   heatmap: GameHeatmapCell[];
   prestigeHistory: PrestigeHistoryItem[];
@@ -134,5 +160,46 @@ export function prestigeGameMode() {
 export function rebuildGameMode() {
   return apiJson<GameDashboard>("/game/rebuild", {
     method: "POST",
+  });
+}
+
+export type GameShopItem = {
+  id: string;
+  type: "TITLE" | "AVATAR";
+  label: string;
+  description: string;
+  icon: string;
+  price: number;
+  rarity: "COMMON" | "RARE" | "EPIC" | "LEGENDARY";
+  payload: string;
+  minLevel: number;
+  minPrestige: number;
+  locked: boolean;
+  lockReason?: string;
+  owned: boolean;
+  equipped: boolean;
+};
+
+export type GameShopResponse = {
+  balance: { lifeCoins: number; lifetimeCoins: number };
+  equipped: { avatarIcon: string; displayTitle: string | null };
+  items: GameShopItem[];
+};
+
+export function fetchGameShop() {
+  return apiJson<GameShopResponse>("/game/shop");
+}
+
+export function purchaseShopItem(itemId: string, equip: boolean) {
+  return apiJson<GameShopResponse>("/game/shop/purchase", {
+    method: "POST",
+    body: JSON.stringify({ itemId, equip }),
+  });
+}
+
+export function equipShopItem(itemId: string) {
+  return apiJson<GameShopResponse>("/game/shop/equip", {
+    method: "PATCH",
+    body: JSON.stringify({ itemId }),
   });
 }

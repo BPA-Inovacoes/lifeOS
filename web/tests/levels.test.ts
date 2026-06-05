@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  globalRankFromLevel,
   levelFromTotalXp,
   levelProgress,
   rankTitleForLevel,
@@ -18,15 +19,21 @@ describe("gamification levels", () => {
     assert.equal(levelFromTotalXp(50), 1);
   });
 
-  it("rankTitleForLevel maps milestones", () => {
-    assert.equal(rankTitleForLevel(1), "Wanderer");
-    assert.equal(rankTitleForLevel(10), "Awakened");
-    assert.equal(rankTitleForLevel(50), "LifeOS Master");
+  it("globalRankFromLevel maps RPG ranks E–SSS", () => {
+    assert.deepEqual(globalRankFromLevel(1), { rank: "E", label: "Iniciante" });
+    assert.deepEqual(globalRankFromLevel(10), { rank: "D", label: "Aprendiz" });
+    assert.deepEqual(globalRankFromLevel(37), { rank: "B", label: "Executor" });
+    assert.deepEqual(globalRankFromLevel(95), { rank: "SSS", label: "Lendário" });
+  });
+
+  it("rankTitleForLevel uses Rank · Label", () => {
+    assert.equal(rankTitleForLevel(37), "B · Executor");
   });
 
   it("levelProgress returns bounded percent", () => {
     const p = levelProgress(250);
     assert.ok(p.percent >= 0 && p.percent <= 100);
     assert.ok(p.level >= 1);
+    assert.equal(p.rank, "E");
   });
 });

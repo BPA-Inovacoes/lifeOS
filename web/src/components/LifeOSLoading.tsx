@@ -6,6 +6,8 @@ const DEFAULT_MESSAGES = [
   "A calcular progressão…",
 ];
 
+type LifeOSLoadingVariant = "focus" | "game" | "finance";
+
 type LifeOSLoadingProps = {
   message?: string;
   submessage?: string;
@@ -13,6 +15,34 @@ type LifeOSLoadingProps = {
   size?: "sm" | "md" | "lg";
   className?: string;
   fullScreen?: boolean;
+  variant?: LifeOSLoadingVariant;
+};
+
+const variantStyles: Record<
+  LifeOSLoadingVariant,
+  { ring: string; ringDelay: string; logo: string; dot: string; label: string }
+> = {
+  focus: {
+    ring: "border-emerald-500/30",
+    ringDelay: "border-cyan-500/20",
+    logo: "text-emerald-800 dark:text-emerald-500",
+    dot: "bg-emerald-500",
+    label: "text-emerald-800/90 dark:text-emerald-500/90",
+  },
+  game: {
+    ring: "border-violet-500/30",
+    ringDelay: "border-fuchsia-500/20",
+    logo: "text-violet-900 dark:text-violet-400",
+    dot: "bg-violet-500",
+    label: "text-violet-900/90 dark:text-violet-400/90",
+  },
+  finance: {
+    ring: "border-amber-500/30",
+    ringDelay: "border-yellow-500/20",
+    logo: "text-amber-900 dark:text-amber-400",
+    dot: "bg-amber-500",
+    label: "text-amber-900/90 dark:text-amber-400/90",
+  },
 };
 
 export function LifeOSLoading({
@@ -22,7 +52,10 @@ export function LifeOSLoading({
   size = "md",
   className,
   fullScreen = false,
+  variant = "focus",
 }: LifeOSLoadingProps) {
+  const colors = variantStyles[variant];
+
   return (
     <div
       role="status"
@@ -43,41 +76,55 @@ export function LifeOSLoading({
         )}
       >
         <span
-          className="lifeos-loader-ring absolute inset-0 border-emerald-500/30"
+          className={cn("lifeos-loader-ring absolute inset-0", colors.ring)}
           aria-hidden
         />
         <span
-          className="lifeos-loader-ring lifeos-loader-ring-delay absolute inset-1 border-cyan-500/20"
+          className={cn(
+            "lifeos-loader-ring lifeos-loader-ring-delay absolute inset-1",
+            colors.ringDelay
+          )}
           aria-hidden
         />
         <div
           className={cn(
-            "relative z-10 font-bold tracking-tighter text-white",
+            "relative z-10 font-bold tracking-tighter text-foreground",
             size === "sm" && "text-lg",
             size === "md" && "text-xl",
             size === "lg" && "text-2xl"
           )}
         >
-          Life<span className="text-emerald-500">OS</span>
+          Life<span className={colors.logo}>OS</span>
         </div>
         <span className="absolute -bottom-0.5 left-1/2 z-10 flex -translate-x-1/2 gap-0.5">
-          <span className="lifeos-loader-dot size-1 bg-emerald-500" />
-          <span className="lifeos-loader-dot lifeos-loader-dot-2 size-1 bg-emerald-500/70" />
-          <span className="lifeos-loader-dot lifeos-loader-dot-3 size-1 bg-emerald-500/40" />
+          <span className={cn("lifeos-loader-dot size-1", colors.dot)} />
+          <span
+            className={cn(
+              "lifeos-loader-dot lifeos-loader-dot-2 size-1 opacity-70",
+              colors.dot
+            )}
+          />
+          <span
+            className={cn(
+              "lifeos-loader-dot lifeos-loader-dot-3 size-1 opacity-40",
+              colors.dot
+            )}
+          />
         </span>
       </div>
 
       <p
         className={cn(
-          "mt-6 font-mono uppercase tracking-[0.2em] text-emerald-500/90",
-          size === "sm" ? "text-[9px]" : "text-[10px]"
+          "mt-6 font-mono uppercase tracking-[0.2em]",
+          colors.label,
+          size === "sm" ? "text-sm" : "text-base"
         )}
       >
         {message}
       </p>
 
       {submessage ? (
-        <p className="mt-2 max-w-xs text-xs text-zinc-500">{submessage}</p>
+        <p className="mt-2 max-w-xs text-sm text-muted-foreground">{submessage}</p>
       ) : (
         <RotatingHint messages={rotatingMessages} />
       )}
@@ -94,7 +141,7 @@ function RotatingHint({ messages }: { messages: string[] }) {
         {messages.map((m) => (
           <span
             key={m}
-            className="h-4 shrink-0 font-mono text-[10px] text-zinc-600"
+            className="h-4 shrink-0 font-mono text-sm text-muted-foreground"
           >
             {m}
           </span>

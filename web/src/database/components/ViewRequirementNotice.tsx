@@ -10,7 +10,7 @@ type ViewRequirementNoticeProps = {
 export function ViewRequirementNotice({ children }: ViewRequirementNoticeProps) {
   return (
     <DataPanel>
-      <div className="px-6 py-12 text-center text-sm text-zinc-500">
+      <div className="px-6 py-12 text-center text-sm text-muted-foreground">
         {children}
       </div>
     </DataPanel>

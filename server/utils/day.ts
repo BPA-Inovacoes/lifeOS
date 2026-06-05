@@ -22,6 +22,20 @@ export function addDays(day: Date, delta: number): Date {
   return toDayDate(d);
 }
 
+/** Segunda-feira da semana civil de `d`. */
+export function startOfWeek(d: Date = new Date()): Date {
+  const day = toDayDate(d);
+  const dow = day.getDay();
+  const offset = dow === 0 ? -6 : 1 - dow;
+  return addDays(day, offset);
+}
+
+/** Primeiro dia do mês de `d`. */
+export function startOfMonth(d: Date = new Date()): Date {
+  const day = toDayDate(d);
+  return new Date(day.getFullYear(), day.getMonth(), 1);
+}
+
 const WEEKDAY_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 export function weekdayLabel(day: Date): string {

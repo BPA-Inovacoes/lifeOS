@@ -1,4 +1,9 @@
-import type { AuthUser, LoginResponse } from "@/types/auth";
+import type {
+  AuthUser,
+  ChangePasswordPayload,
+  LoginResponse,
+  UpdateProfilePayload,
+} from "@/types/auth";
 import { apiJson } from "@/services/http";
 
 export async function loginRequest(
@@ -22,7 +27,26 @@ export async function registerRequest(payload: {
   });
 }
 
-export async function meRequest(token: string): Promise<AuthUser> {
+export async function meRequest(): Promise<AuthUser> {
+  return apiJson<AuthUser>("/users/me");
+}
+
+export async function updateMeRequest(payload: UpdateProfilePayload): Promise<AuthUser> {
+  return apiJson<AuthUser>("/users/me", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function changePasswordRequest(payload: ChangePasswordPayload): Promise<void> {
+  await apiJson<void>("/users/me/password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** @deprecated Use meRequest() — o JWT injecta-se automaticamente */
+export async function meRequestWithToken(token: string): Promise<AuthUser> {
   return apiJson<AuthUser>("/users/me", {
     headers: { Authorization: `Bearer ${token}` },
   });

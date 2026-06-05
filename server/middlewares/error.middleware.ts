@@ -10,7 +10,8 @@ export type HttpErrorCode =
   | "FORBIDDEN"
   | "CONFLICT"
   | "INTERNAL_ERROR"
-  | "NOT_FOUND";
+  | "NOT_FOUND"
+  | "RATE_LIMIT";
 
 export type HttpErrorPayload = {
   code: HttpErrorCode;

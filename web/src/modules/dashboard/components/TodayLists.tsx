@@ -3,6 +3,7 @@ import { CheckCircle2, Circle, Flame } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import type { DashboardSummary } from "@/services/dashboardApi";
+import { paths } from "@/routes/paths";
 import { listItemClass, sectionLabelMutedClass } from "@/styles/designTokens";
 import { cn } from "@/lib/utils";
 import { formatPoints, pointsBadgeClass } from "@/utils/points";
@@ -17,16 +18,16 @@ function TodayPanel({
   children: ReactNode;
 }) {
   return (
-    <section className="relative border border-zinc-800 bg-zinc-950">
+    <section className="relative border border-border bg-background/85 backdrop-blur-sm">
       <div
         className="absolute left-0 top-0 h-0.5 w-full bg-emerald-600/70"
         aria-hidden
       />
-      <div className="border-b border-zinc-800 px-4 py-3">
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-600/80">
+      <div className="border-b border-border px-4 py-3">
+        <p className="font-mono text-xs uppercase tracking-[0.2em] text-emerald-600/80">
           {sectionTag}
         </p>
-        <h3 className="mt-0.5 text-sm font-medium text-zinc-200">{title}</h3>
+        <h3 className="mt-0.5 text-sm font-medium text-foreground">{title}</h3>
       </div>
       <div className="p-3">{children}</div>
     </section>
@@ -37,31 +38,31 @@ export function TodayLists({ data }: { data: DashboardSummary }) {
   const { links } = data;
   const tasksHref =
     links.tasksDatabaseId && links.workspaceId
-      ? `/w/${links.workspaceId}/db/${links.tasksDatabaseId}`
+      ? paths.focus.database(links.workspaceId, links.tasksDatabaseId)
       : undefined;
   const habitsHref =
     links.habitsDatabaseId && links.workspaceId
-      ? `/w/${links.workspaceId}/db/${links.habitsDatabaseId}`
+      ? paths.focus.database(links.workspaceId, links.habitsDatabaseId)
       : undefined;
 
   return (
     <section className="space-y-4">
       <div>
         <p className={sectionLabelMutedClass}>// agenda</p>
-        <h2 className="mt-1 text-lg font-medium text-white">Prioridades</h2>
+        <h2 className="mt-1 text-lg font-medium text-foreground">Prioridades</h2>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <TodayPanel title="Tarefas em aberto" sectionTag="// tarefas">
           {data.taskPreview.length === 0 ? (
-            <p className="px-1 py-6 text-center text-sm text-zinc-500">
+            <p className="px-1 py-6 text-center text-sm text-muted-foreground">
               Nenhuma tarefa em aberto.
               {tasksHref ? (
                 <>
                   {" "}
                   <Link
                     to={tasksHref}
-                    className="text-emerald-500 hover:text-emerald-400"
+                    className="text-emerald-800 dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400"
                   >
                     Abrir tarefas
                   </Link>
@@ -73,18 +74,18 @@ export function TodayLists({ data }: { data: DashboardSummary }) {
               {data.taskPreview.map((t) => (
                 <li key={t.id}>
                   <Link
-                    to={`/w/${t.workspaceId}/db/${t.databaseId}`}
+                    to={paths.focus.database(t.workspaceId, t.databaseId)}
                     className={listItemClass}
                   >
-                    <Circle className="size-4 shrink-0 text-zinc-600" />
-                    <span className="min-w-0 flex-1 truncate text-zinc-200">
+                    <Circle className="size-4 shrink-0 text-muted-foreground" />
+                    <span className="min-w-0 flex-1 truncate text-foreground">
                       {t.title}
                     </span>
                     <span className="flex shrink-0 items-center gap-1.5">
                       {t.points > 0 ? (
                         <span
                           className={cn(
-                            "border px-1.5 py-0.5 font-mono text-[9px] uppercase",
+                            "border px-1.5 py-0.5 font-mono text-xs uppercase",
                             pointsBadgeClass(t.earned)
                           )}
                         >
@@ -93,12 +94,12 @@ export function TodayLists({ data }: { data: DashboardSummary }) {
                       ) : null}
                       <span
                         className={cn(
-                          "border px-1.5 py-0.5 font-mono text-[9px] uppercase",
+                          "border px-1.5 py-0.5 font-mono text-xs uppercase",
                           t.status === "Em progresso"
                             ? "border-amber-900/50 text-amber-500/90"
                             : t.status === "Concluído"
-                              ? "border-emerald-900/50 text-emerald-500"
-                              : "border-zinc-700 text-zinc-500"
+                              ? "border-emerald-900/50 text-emerald-800 dark:text-emerald-500"
+                              : "border-border text-muted-foreground"
                         )}
                       >
                         {t.status}
@@ -113,14 +114,14 @@ export function TodayLists({ data }: { data: DashboardSummary }) {
 
         <TodayPanel title="Hábitos de hoje" sectionTag="// hábitos">
           {data.habitPreview.length === 0 ? (
-            <p className="px-1 py-6 text-center text-sm text-zinc-500">
+            <p className="px-1 py-6 text-center text-sm text-muted-foreground">
               Sem hábitos. Cria entradas na base de dados Hábitos.
               {habitsHref ? (
                 <>
                   {" "}
                   <Link
                     to={habitsHref}
-                    className="text-emerald-500 hover:text-emerald-400"
+                    className="text-emerald-800 dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400"
                   >
                     Abrir hábitos
                   </Link>
@@ -132,26 +133,26 @@ export function TodayLists({ data }: { data: DashboardSummary }) {
               {data.habitPreview.map((h) => (
                 <li key={h.id}>
                   <Link
-                    to={`/w/${h.workspaceId}/db/${h.databaseId}`}
+                    to={paths.focus.database(h.workspaceId, h.databaseId)}
                     className={listItemClass}
                   >
                     <CheckCircle2
                       className={cn(
                         "size-4 shrink-0",
-                        h.done ? "text-emerald-500" : "text-zinc-700"
+                        h.done ? "text-emerald-800 dark:text-emerald-500" : "text-zinc-700"
                       )}
                     />
                     <span
                       className={cn(
                         "min-w-0 flex-1 truncate",
-                        h.done ? "text-zinc-500 line-through" : "text-zinc-200"
+                        h.done ? "text-muted-foreground line-through" : "text-foreground"
                       )}
                     >
                       {h.title}
                     </span>
                     <span className="flex shrink-0 items-center gap-1.5">
                       {h.streak > 0 ? (
-                        <span className="flex items-center gap-0.5 font-mono text-[9px] uppercase text-amber-500/90">
+                        <span className="flex items-center gap-0.5 font-mono text-xs uppercase text-amber-500/90">
                           <Flame className="size-3" />
                           {h.streak}d
                         </span>
@@ -159,7 +160,7 @@ export function TodayLists({ data }: { data: DashboardSummary }) {
                       {h.points > 0 ? (
                         <span
                           className={cn(
-                            "border px-1.5 py-0.5 font-mono text-[9px] uppercase",
+                            "border px-1.5 py-0.5 font-mono text-xs uppercase",
                             pointsBadgeClass(h.earned)
                           )}
                         >
@@ -168,8 +169,8 @@ export function TodayLists({ data }: { data: DashboardSummary }) {
                       ) : null}
                       <span
                         className={cn(
-                          "font-mono text-[9px] uppercase",
-                          h.done ? "text-emerald-500" : "text-zinc-600"
+                          "font-mono text-xs uppercase",
+                          h.done ? "text-emerald-800 dark:text-emerald-500" : "text-muted-foreground"
                         )}
                       >
                         {h.done ? "feito" : "pendente"}

@@ -34,4 +34,22 @@ export class UserController {
       next(e);
     }
   };
+
+  changePassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ code: "UNAUTHORIZED", message: "Não autenticado." });
+        return;
+      }
+      const body = this.deps.auth.parseChangePassword(req.body);
+      await this.deps.auth.changePassword(req.user.id, body);
+      res.status(204).send();
+    } catch (e) {
+      next(e);
+    }
+  };
 }

@@ -79,15 +79,15 @@ export function ConfirmDialog({
     >
       <div
         className={cn(
-          "relative rounded-none border border-zinc-800 bg-zinc-950 shadow-2xl"
+          "relative rounded-none border border-border bg-background shadow-2xl"
         )}
       >
         <div className={cn("absolute left-0 top-0 h-1 w-full", v.accent)} aria-hidden />
 
-        <div className="border-b border-zinc-800 px-6 py-5">
+        <div className="border-b border-border px-6 py-5">
           <p
             className={cn(
-              "font-mono text-[10px] uppercase tracking-[0.2em]",
+              "font-mono text-xs uppercase tracking-[0.2em]",
               v.eyebrowClass
             )}
           >
@@ -105,13 +105,13 @@ export function ConfirmDialog({
             <div className="min-w-0">
               <h2
                 id="confirm-dialog-title"
-                className="text-lg font-semibold leading-snug text-white"
+                className="text-lg font-semibold leading-snug text-foreground"
               >
                 {title}
               </h2>
               <p
                 id="confirm-dialog-desc"
-                className="mt-2 whitespace-pre-line text-sm leading-relaxed text-zinc-400"
+                className="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted-foreground"
               >
                 {description}
               </p>

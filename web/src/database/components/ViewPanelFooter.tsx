@@ -27,7 +27,7 @@ export function ViewPanelFooter({
 }: ViewPanelFooterProps) {
   return (
     <div className={cn(dataPanelFooterClass, className)}>
-      <span className="flex items-center gap-2 font-mono text-[10px] uppercase text-zinc-600">
+      <span className="flex items-center gap-2 font-mono text-xs uppercase text-muted-foreground">
         <CountIcon className="size-3.5" />
         {countLabel}
       </span>

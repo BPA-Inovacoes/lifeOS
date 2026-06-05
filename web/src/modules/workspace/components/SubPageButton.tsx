@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
 import { createPage } from "@/services/workspaceApi";
+import { paths } from "@/routes/paths";
 import { toast } from "@/store/toastStore";
 
 type SubPageButtonProps = {
@@ -24,14 +25,14 @@ export function SubPageButton({
     mutationFn: () =>
       createPage(workspaceId, {
         title: "Subpágina",
-        icon: "📄",
+        icon: "file-text",
         parentId,
       }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["pages", workspaceId] });
       qc.invalidateQueries({ queryKey: ["workspace", workspaceId] });
       toast.success("Subpágina criada");
-      navigate(`/w/${workspaceId}/p/${res.page.id}`);
+      navigate(paths.focus.page(workspaceId, res.page.id));
     },
     onError: () => toast.error("Não foi possível criar a subpágina."),
   });
@@ -40,7 +41,7 @@ export function SubPageButton({
     <button
       type="button"
       className={cn(
-        "shrink-0 p-1 text-zinc-700 opacity-0 transition-opacity hover:text-emerald-400 group-hover/item:opacity-100",
+        "shrink-0 p-1 text-zinc-700 opacity-0 transition-opacity hover:text-emerald-700 dark:hover:text-emerald-400 group-hover/item:opacity-100",
         className
       )}
       aria-label="Nova subpágina"

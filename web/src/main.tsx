@@ -3,9 +3,14 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import App from "./App";
+import { SessionSync } from "@/components/SessionSync";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import "./index.css";
+import { initThemeBeforeRender } from "@/lib/applyTheme";
 import { ApiError } from "@/services/http";
 import { toast } from "@/store/toastStore";
+
+initThemeBeforeRender();
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,7 +38,10 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <ThemeProvider>
+        <SessionSync />
+        <App />
+      </ThemeProvider>
     </QueryClientProvider>
   </StrictMode>
 );

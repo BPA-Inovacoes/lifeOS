@@ -24,8 +24,24 @@ export function activityEventType(ctx: ActivityContext): ActivityEventType {
       return "ACHIEVEMENT_UNLOCKED";
     case "mission.completed":
       return "MISSION_COMPLETED";
+    case "client.closed":
+      return "CLIENT_CLOSED";
+    case "finance.method.step":
+      return "FINANCE_METHOD_STEP";
+    case "finance.review.completed":
+      return "FINANCE_REVIEW_COMPLETED";
+    case "finance.review.streak":
+      return "FINANCE_REVIEW_STREAK";
+    case "finance.goal.reached":
+      return "FINANCE_GOAL_REACHED";
+    case "finance.budget.respected":
+      return "FINANCE_BUDGET_RESPECTED";
+    case "finance.method.completed":
+      return "FINANCE_METHOD_COMPLETED";
     case "prestige.reset":
       return "PRESTIGE_RESET";
+    default:
+      return "TASK_COMPLETED";
   }
 }
 
@@ -39,6 +55,8 @@ export function sourceLabel(source?: PointsEventSource | null) {
       return "objectivo";
     case "STUDY":
       return "estudo";
+    case "CLIENT":
+      return "cliente";
     default:
       return "progresso";
   }

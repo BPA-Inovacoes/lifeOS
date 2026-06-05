@@ -1,23 +1,17 @@
-import { File, FileText, Home, type LucideIcon } from "lucide-react";
-
+import { resolvePageIcon } from "@/modules/workspace/pageIcons";
 import { cn } from "@/lib/utils";
-
-const ICON_MAP: Record<string, LucideIcon> = {
-  "📄": FileText,
-  "🏠": Home,
-  "📁": File,
-};
 
 type PageIconProps = {
   icon?: string | null;
   active?: boolean;
   className?: string;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
 };
 
 const sizeClass = {
   sm: "size-3.5",
   md: "size-4",
+  lg: "size-5",
 };
 
 export function PageIcon({
@@ -26,14 +20,14 @@ export function PageIcon({
   className,
   size = "sm",
 }: PageIconProps) {
-  const Icon = (icon && ICON_MAP[icon]) || FileText;
+  const Icon = resolvePageIcon(icon);
 
   return (
     <Icon
       className={cn(
         sizeClass[size],
-        "shrink-0",
-        active ? "text-emerald-500/90" : "text-zinc-400",
+        "shrink-0 stroke-[1.5]",
+        active ? "text-emerald-800/90 dark:text-emerald-500/90" : "text-muted-foreground",
         className
       )}
       aria-hidden

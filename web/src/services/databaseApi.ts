@@ -19,11 +19,20 @@ export type RowActivityMeta = {
   heatmap?: HeatmapCell[];
 };
 
+export type ClientFinanceLinkMeta = {
+  rowId: string;
+  clientName: string;
+  movementId: string;
+  amount: number;
+  date: string;
+};
+
 export type DatabaseDetail = DatabaseEngine & {
   icon: string | null;
   template: string;
   workspaceId: string;
   rowActivity?: Record<string, RowActivityMeta>;
+  clientFinanceLinks?: Record<string, ClientFinanceLinkMeta>;
 };
 
 export type DatabaseSummary = {
@@ -40,18 +49,62 @@ export async function listDatabases(workspaceId: string) {
   );
 }
 
+export type CreateDatabaseInput = {
+  name: string;
+  icon?: string;
+};
+
+export async function createDatabase(
+  workspaceId: string,
+  input: CreateDatabaseInput
+) {
+  return apiJson<{ database: DatabaseSummary }>(
+    `/workspaces/${workspaceId}/databases`,
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    }
+  );
+}
+
 export async function fetchDatabase(workspaceId: string, databaseId: string) {
   return apiJson<{ database: DatabaseDetail }>(
     `/workspaces/${workspaceId}/databases/${databaseId}`
   );
 }
 
+export type GamificationFeedback = {
+  xpGained: number;
+  bonusXp: number;
+  lifeCoinsGained: number;
+  levelUp: boolean;
+  newLevel?: number;
+  rankTitle?: string;
+  missions: { title: string; xpReward: number }[];
+  achievements: { name: string; xpReward: number }[];
+};
+
+export type FinanceIncomeSuggestion = {
+  clientRowId: string;
+  clientName: string;
+  amount: number;
+  accountId: string | null;
+  categoryId: string;
+  note: string;
+};
+
+export type DatabaseRowResponse = {
+  row: DatabaseRow;
+  gamification?: GamificationFeedback | null;
+  financeSuggestion?: FinanceIncomeSuggestion | null;
+};
+
 export async function createDatabaseRow(
   workspaceId: string,
   databaseId: string,
   properties?: Record<string, unknown>
 ) {
-  return apiJson<{ row: DatabaseRow }>(
+  return apiJson<DatabaseRowResponse>(
     `/workspaces/${workspaceId}/databases/${databaseId}/rows`,
     {
       method: "POST",
@@ -64,7 +117,7 @@ export async function updateDatabaseRow(
   rowId: string,
   properties: Record<string, unknown>
 ) {
-  return apiJson<{ row: DatabaseRow }>(`/database-rows/${rowId}`, {
+  return apiJson<DatabaseRowResponse>(`/database-rows/${rowId}`, {
     method: "PATCH",
     body: JSON.stringify({ properties }),
   });

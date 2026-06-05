@@ -32,14 +32,14 @@ export function PointsCell({
   };
 
   const btnClass =
-    "flex size-7 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-900 text-zinc-500 transition-colors hover:border-emerald-800 hover:text-emerald-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-zinc-800 disabled:hover:text-zinc-500";
+    "flex size-7 shrink-0 items-center justify-center border border-border bg-card text-muted-foreground transition-colors hover:border-emerald-800 hover:text-emerald-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border disabled:hover:text-muted-foreground";
 
   return (
     <div
       className="flex items-center gap-1"
       onClick={(e) => e.stopPropagation()}
     >
-      <span className="flex size-7 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-900">
+      <span className="flex size-7 shrink-0 items-center justify-center border border-border bg-card">
         <Zap className="size-3.5 text-emerald-600/80" aria-hidden />
       </span>
 
@@ -51,7 +51,7 @@ export function PointsCell({
         value={local === 0 ? "" : local}
         placeholder="0"
         className={cn(
-          "h-9 w-14 rounded-none border border-zinc-700 bg-zinc-900 px-2 text-center text-sm tabular-nums text-emerald-400",
+          "h-9 w-14 rounded-none border border-border bg-card px-2 text-center text-sm tabular-nums text-emerald-800 dark:text-emerald-400",
           "outline-none focus:border-emerald-600",
           "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         )}

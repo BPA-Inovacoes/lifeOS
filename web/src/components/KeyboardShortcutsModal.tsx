@@ -68,16 +68,16 @@ export function KeyboardShortcutsModal() {
     >
       <div className={cn(techCardClass, "relative overflow-hidden shadow-2xl")}>
         <div className={techCardAccentClass} aria-hidden />
-        <div className="border-b border-zinc-800 px-5 py-4">
+        <div className="border-b border-border px-5 py-4">
           <div className="flex items-center gap-2">
             <Keyboard className="size-4 text-emerald-600/80" />
-            <h2 id="shortcuts-title" className="text-base font-medium text-zinc-100">
+            <h2 id="shortcuts-title" className="text-base font-medium text-foreground">
               Atalhos de teclado
             </h2>
           </div>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Rapidez sem sair do fluxo. Manual completo em{" "}
-            <span className="text-zinc-400">/ajuda</span>.
+            <span className="text-muted-foreground">/ajuda</span>.
           </p>
         </div>
 
@@ -94,13 +94,13 @@ export function KeyboardShortcutsModal() {
                     className={cn(
                       "flex items-center justify-between gap-3 border border-transparent px-2 py-2",
                       transitionColorsClass,
-                      "hover:border-zinc-800 hover:bg-zinc-900/50"
+                      "hover:border-border hover:bg-secondary/50"
                     )}
                   >
                     <div className="min-w-0">
-                      <p className="text-sm text-zinc-200">{row.label}</p>
+                      <p className="text-sm text-foreground">{row.label}</p>
                       {row.context ? (
-                        <p className="font-mono text-[9px] uppercase text-zinc-600">
+                        <p className="font-mono text-xs uppercase text-muted-foreground">
                           {row.context}
                         </p>
                       ) : null}
@@ -113,7 +113,7 @@ export function KeyboardShortcutsModal() {
           ))}
         </div>
 
-        <div className="flex items-center justify-between border-t border-zinc-800 px-5 py-3 font-mono text-[9px] uppercase text-zinc-600">
+        <div className="flex items-center justify-between border-t border-border px-5 py-3 font-mono text-xs uppercase text-muted-foreground">
           <span>Paleta: criar · ir · pesquisar</span>
           <kbd className={kbdClass}>Esc</kbd>
         </div>

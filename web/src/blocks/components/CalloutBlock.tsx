@@ -5,7 +5,7 @@ export function CalloutBlock({ block, editable, onChange, slash }: BlockRenderer
   const text = (block.content.text as string) ?? "";
 
   return (
-    <div className="rounded-none border border-zinc-800 border-l-2 border-l-emerald-600 bg-zinc-900/80 px-4 py-3 text-sm text-zinc-200">
+    <div className="rounded-none border border-border border-l-2 border-l-emerald-600 bg-secondary/80 px-4 py-3 text-sm text-foreground">
       <SlashableText
         text={text}
         editable={editable}

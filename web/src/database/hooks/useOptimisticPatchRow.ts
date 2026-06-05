@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { patchHabitActivityOptimistic } from "@/database/utils/habitActivityOptimistic";
+import { applyRowGamificationFeedback } from "@/modules/game/utils/gamificationFeedback";
 import { updateDatabaseRow } from "@/services/databaseApi";
 import type { DatabaseDetail } from "@/services/databaseApi";
+import { useFinanceSuggestionStore } from "@/store/financeSuggestionStore";
 import type { DatabaseProperty } from "@/types/database";
 
 type PatchVars = {
@@ -82,6 +84,10 @@ export function useOptimisticPatchRow({
         );
         return { database: { ...old.database, rows } };
       });
+      applyRowGamificationFeedback(qc, data.gamification);
+      if (data.financeSuggestion) {
+        useFinanceSuggestionStore.getState().open(data.financeSuggestion);
+      }
       void qc.invalidateQueries({ queryKey, refetchType: "active" });
     },
 

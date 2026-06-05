@@ -2,6 +2,7 @@ import { AlertTriangle, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { pageShellClass, techCardClass, techCardAccentClass } from "@/styles/designTokens";
+import { paths } from "@/routes/paths";
 import { cn } from "@/lib/utils";
 
 type RouteErrorFallbackProps = {
@@ -15,15 +16,15 @@ export function RouteErrorFallback({ error, onRetry }: RouteErrorFallbackProps) 
       <div className={cn(techCardClass, "relative px-6 py-10 text-center")}>
         <div className={techCardAccentClass} aria-hidden />
         <AlertTriangle className="mx-auto size-8 text-amber-500/80" />
-        <h1 className="mt-4 text-lg font-medium text-zinc-100">
+        <h1 className="mt-4 text-lg font-medium text-foreground">
           Ocorreu um erro inesperado
         </h1>
-        <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
+        <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
           A interface encontrou um problema. Podes tentar recarregar esta vista ou voltar ao
           dashboard.
         </p>
         {error?.message ? (
-          <p className="mx-auto mt-3 max-w-lg border border-zinc-800 bg-zinc-900/80 px-3 py-2 font-mono text-[10px] text-zinc-600">
+          <p className="mx-auto mt-3 max-w-lg border border-border bg-secondary/80 px-3 py-2 font-mono text-sm text-muted-foreground">
             {error.message}
           </p>
         ) : null}
@@ -38,7 +39,7 @@ export function RouteErrorFallback({ error, onRetry }: RouteErrorFallbackProps) 
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => window.location.assign("/dashboard")}
+            onClick={() => window.location.assign(paths.focus.dashboard)}
           >
             Ir para o dashboard
           </Button>

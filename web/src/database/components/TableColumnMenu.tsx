@@ -44,20 +44,20 @@ export function TableColumnMenu({
         type="button"
         variant="outline"
         size="sm"
-        className="gap-1.5 font-mono text-[10px] uppercase"
+        className="gap-1.5 font-mono text-xs uppercase"
         onClick={() => setOpen((v) => !v)}
       >
         <Columns3 className="size-3.5" />
         Colunas
         {hiddenCount > 0 ? (
-          <span className="text-emerald-500">· {hiddenCount} ocultas</span>
+          <span className="text-emerald-800 dark:text-emerald-500">· {hiddenCount} ocultas</span>
         ) : null}
       </Button>
 
       {open ? (
         <div
           className={cn(
-            "absolute right-0 top-full z-30 mt-2 w-56 border border-zinc-700 bg-zinc-950 p-2 shadow-lg",
+            "absolute right-0 top-full z-30 mt-2 w-56 border border-border bg-background p-2 shadow-lg",
             "lifeos-scrollbar-thin max-h-72 overflow-y-auto"
           )}
         >
@@ -73,8 +73,8 @@ export function TableColumnMenu({
                     type="button"
                     className={cn(
                       "flex w-full items-center gap-2 px-2 py-1.5 text-left text-xs transition-colors",
-                      "hover:bg-zinc-900",
-                      isHidden ? "text-zinc-600" : "text-zinc-300"
+                      "hover:bg-card",
+                      isHidden ? "text-muted-foreground" : "text-foreground"
                     )}
                     onClick={() =>
                       onChange(
@@ -83,7 +83,7 @@ export function TableColumnMenu({
                     }
                   >
                     {isHidden ? (
-                      <EyeOff className="size-3.5 shrink-0 text-zinc-600" />
+                      <EyeOff className="size-3.5 shrink-0 text-muted-foreground" />
                     ) : (
                       <Eye className="size-3.5 shrink-0 text-emerald-600/80" />
                     )}
@@ -98,7 +98,7 @@ export function TableColumnMenu({
               type="button"
               variant="outline"
               size="sm"
-              className="mt-2 w-full text-[10px]"
+              className="mt-2 w-full text-xs"
               onClick={() => onChange(showAllColumns(columns))}
             >
               Mostrar todas

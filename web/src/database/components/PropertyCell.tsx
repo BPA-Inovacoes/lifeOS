@@ -73,10 +73,10 @@ export function PropertyCell({
           <input
             type="checkbox"
             checked={Boolean(value)}
-            className="size-4 rounded-none border-zinc-700 accent-emerald-600"
+            className="size-4 rounded-none border-border accent-emerald-600"
             onChange={(e) => onChange(e.target.checked)}
           />
-          <span className="font-mono text-[10px] uppercase text-zinc-600">
+          <span className="font-mono text-xs uppercase text-muted-foreground">
             {Boolean(value) ? "sim" : "não"}
           </span>
         </label>
@@ -92,7 +92,7 @@ export function PropertyCell({
           onChange={(e) => onChange(e.target.value)}
         >
           {options.map((opt) => (
-            <option key={opt} value={opt} className="bg-zinc-900 text-zinc-100">
+            <option key={opt} value={opt} className="bg-card text-foreground">
               {opt}
             </option>
           ))}
@@ -105,11 +105,11 @@ export function PropertyCell({
           className={selectClass}
           onChange={(e) => onChange(e.target.value)}
         >
-          <option value="" className="bg-zinc-900">
+          <option value="" className="bg-card">
             —
           </option>
           {options.map((opt) => (
-            <option key={opt} value={opt} className="bg-zinc-900">
+            <option key={opt} value={opt} className="bg-card">
               {opt}
             </option>
           ))}
@@ -118,7 +118,7 @@ export function PropertyCell({
     case "RELATION":
       if (!workspaceId) {
         return (
-          <span className="font-mono text-[10px] text-zinc-600">—</span>
+          <span className="font-mono text-sm text-muted-foreground">—</span>
         );
       }
       return (

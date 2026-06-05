@@ -146,7 +146,7 @@ async function main() {
       data: {
         workspaceId: ws.id,
         title: "Início",
-        icon: "🏠",
+        icon: "home",
         createdById: user.id,
       },
     });

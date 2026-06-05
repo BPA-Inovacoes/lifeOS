@@ -9,6 +9,7 @@ import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { cn } from "@/lib/utils";
 import { deletePage } from "@/services/workspaceApi";
+import { paths } from "@/routes/paths";
 import {
   navItemActiveClass,
   navItemClass,
@@ -41,7 +42,7 @@ function PageTreeItem({
         {hasChildren ? (
           <button
             type="button"
-            className="mr-0.5 rounded-none p-0.5 text-zinc-600 hover:bg-zinc-900 hover:text-zinc-400"
+            className="mr-0.5 rounded-none p-0.5 text-muted-foreground hover:bg-card hover:text-muted-foreground"
             onClick={() => setOpen((o) => !o)}
             aria-label={open ? "Recolher" : "Expandir"}
           >
@@ -53,7 +54,7 @@ function PageTreeItem({
           <span className="w-4 shrink-0" />
         )}
         <NavLink
-          to={`/w/${workspaceId}/p/${node.id}`}
+          to={paths.focus.page(workspaceId, node.id)}
           className={({ isActive }) =>
             cn(
               navItemClass,
@@ -123,15 +124,15 @@ export function PageTree({
       setPendingDelete(null);
 
       if (activePageId === deletedId) {
-        navigate(`/w/${workspaceId}`, { replace: true });
+        navigate(paths.focus.workspace(workspaceId), { replace: true });
       }
     },
   });
 
   if (nodes.length === 0) {
     return (
-      <p className="flex items-center gap-2 px-3 py-2 font-mono text-[10px] text-zinc-600">
-        <FileText className="size-3.5 text-zinc-500" />
+      <p className="flex items-center gap-2 px-3 py-2 font-mono text-sm text-muted-foreground">
+        <FileText className="size-3.5 text-muted-foreground" />
         Sem páginas
       </p>
     );

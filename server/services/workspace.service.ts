@@ -129,7 +129,7 @@ export class WorkspaceService {
         data: {
           workspaceId: ws.id,
           title: "Início",
-          icon: "🏠",
+          icon: "home",
           createdById: userId,
         },
       });

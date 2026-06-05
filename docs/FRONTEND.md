@@ -54,6 +54,19 @@ src/
 - Conteúdo tipado em `types/block.ts`
 - Persistência: debounce + `PATCH` por bloco (fase 3+)
 
+## Case (assistente)
+
+Módulo em `web/src/modules/case/` + `web/src/services/caseApi.ts`.
+
+| Peça | Descrição |
+|------|-----------|
+| `CaseAssistant` | FAB + painel — montado em `AppShell`, `GameShell`, `FinanceShell` |
+| `CasePanel` | Chat, streaming SSE, cartões de proposta |
+| `CaseInsightsWidget` | Widget no Painel Agora (`DashboardPage`) |
+| `caseStore` | Estado UI: aberto, conversa, prompt pendente (insights) |
+
+Spec: [`CASE.md`](CASE.md)
+
 ## Android (futuro)
 
 Reutilizar: `services/`, `types/`, `store/`, schemas Zod. Substituir apenas camada de navegação e componentes nativos.

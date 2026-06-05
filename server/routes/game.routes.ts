@@ -11,5 +11,8 @@ export function createGameRouter(controller: GameController): Router {
   r.patch("/mode", controller.toggleMode);
   r.post("/prestige", controller.prestige);
   r.post("/rebuild", controller.rebuild);
+  r.get("/shop", controller.shop);
+  r.post("/shop/purchase", controller.purchaseShopItem);
+  r.patch("/shop/equip", controller.equipShopItem);
   return r;
 }

@@ -1,4 +1,4 @@
-export type UserRole = "ADMIN" | "CEO" | "EMPLOYEE" | "MANAGER";
+export type UserRole = "ADMIN" | "USER";
 
 export type AuthUser = {
   id: string;
@@ -11,4 +11,14 @@ export type AuthUser = {
 export type LoginResponse = {
   token: string;
   user: AuthUser;
+};
+
+export type UpdateProfilePayload = {
+  name?: string;
+  email?: string;
+};
+
+export type ChangePasswordPayload = {
+  currentPassword: string;
+  newPassword: string;
 };

@@ -48,25 +48,25 @@ export function WorkspaceDatabasePicker({
             aria-pressed={isOn}
             className={cn(
               "flex items-start gap-3 border p-3 text-left transition-colors",
-              "bg-zinc-900 hover:border-zinc-600",
+              "bg-card hover:border-border",
               isOn
                 ? "border-emerald-600 ring-1 ring-emerald-600/40"
-                : "border-zinc-800 opacity-70 hover:opacity-100"
+                : "border-border opacity-70 hover:opacity-100"
             )}
             onClick={() => toggle(id)}
           >
             <Icon
               className={cn(
                 "mt-0.5 size-4 shrink-0 stroke-[1.5]",
-                isOn ? "text-emerald-500/90" : "text-zinc-500"
+                isOn ? "text-emerald-800/90 dark:text-emerald-500/90" : "text-muted-foreground"
               )}
               aria-hidden
             />
             <span className="min-w-0">
-              <span className="block text-sm font-medium text-zinc-200">
+              <span className="block text-sm font-medium text-foreground">
                 {label}
               </span>
-              <span className="mt-0.5 block text-xs text-zinc-600">
+              <span className="mt-0.5 block text-sm text-muted-foreground">
                 {description}
               </span>
             </span>

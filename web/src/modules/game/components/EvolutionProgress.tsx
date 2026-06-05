@@ -3,6 +3,8 @@ import {
   gameGlassClass,
   gamePanelClass,
   gamePhaseGlow,
+  gameProgressBarClass,
+  gameXpTextClass,
 } from "@/modules/game/styles/gameTokens";
 
 type EvolutionProgressProps = {
@@ -18,26 +20,26 @@ export function EvolutionProgress({ profile }: EvolutionProgressProps) {
       <div className="relative p-4">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">
+            <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
               Evolution
             </p>
-            <h3 className="mt-1 text-lg font-medium text-white">{profile.phase}</h3>
-            <p className="mt-1 text-xs text-zinc-500">
+            <h3 className="mt-1 text-lg font-medium text-foreground">{profile.phase}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
               {profile.evolution.completedLevels}/{profile.evolution.totalLevels} níveis nesta
               phase
             </p>
           </div>
           <div className="text-right">
-            <p className="font-mono text-xs text-emerald-400">
+            <p className={`font-mono text-xs ${gameXpTextClass}`}>
               {profile.xpToNextLevel} XP
             </p>
-            <p className="font-mono text-[10px] text-zinc-500">para o próximo nível</p>
+            <p className="font-mono text-sm text-muted-foreground">para o próximo nível</p>
           </div>
         </div>
 
-        <div className="mt-4 h-2 overflow-hidden border border-zinc-700/60 bg-zinc-900/80">
+        <div className="mt-4 h-2 overflow-hidden border border-border/60 bg-secondary/80">
           <div
-            className="h-full bg-gradient-to-r from-emerald-600 via-cyan-500 to-violet-500 transition-all duration-700"
+            className={`h-full transition-all duration-700 ${gameProgressBarClass}`}
             style={{ width: `${profile.evolution.percent}%` }}
           />
         </div>

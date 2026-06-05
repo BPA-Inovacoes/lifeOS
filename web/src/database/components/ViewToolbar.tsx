@@ -19,10 +19,10 @@ export function ViewToolbar({ label, hint, action, className }: ViewToolbarProps
       )}
     >
       <div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-600/80">
+        <p className="font-mono text-xs uppercase tracking-[0.2em] text-emerald-600/80">
           {label}
         </p>
-        {hint ? <p className="mt-1 text-xs text-zinc-600">{hint}</p> : null}
+        {hint ? <p className="mt-1 text-sm text-muted-foreground">{hint}</p> : null}
       </div>
       {action ?? null}
     </div>

@@ -43,6 +43,19 @@ export function isStudyCompleted(status: string) {
   return status.toLowerCase().includes("dominado");
 }
 
+export function isClientClosed(status: string) {
+  return status.toLowerCase().includes("fechado");
+}
+
+export function suggestClientPoints(valueEuro: unknown): number {
+  const n = parsePoints(valueEuro);
+  if (n >= 10000) return 500;
+  if (n >= 5000) return 400;
+  if (n >= 1000) return 300;
+  if (n >= 500) return 250;
+  return 300;
+}
+
 export function applyRowPoints(
   template: string,
   properties: Prop[],
@@ -115,6 +128,23 @@ export function applyRowPoints(
     }
   }
 
+  if (template === "CLIENTS") {
+    const valueProp =
+      findProp(properties, "Valor (€)") ??
+      findProp(properties, "Valor") ??
+      findProp(properties, "Valor EUR");
+    const value = valueProp ? out[valueProp.id] : 0;
+    const suggested = suggestClientPoints(value);
+
+    if (
+      out[pointsProp.id] === null ||
+      out[pointsProp.id] === undefined ||
+      out[pointsProp.id] === ""
+    ) {
+      out[pointsProp.id] = suggested;
+    }
+  }
+
   return out;
 }
 
@@ -147,5 +177,18 @@ export function rowPoints(
     const freq = freqProp ? String(values[freqProp.id] ?? "") : "";
     return suggestHabitPoints(freq);
   }
+
+  const statusProp = properties.find((p) => p.type === "STATUS");
+  if (statusProp && isClientClosed(String(values[statusProp.id] ?? ""))) {
+    const pointsProp = findProp(properties, "Pontos");
+    const valueProp =
+      findProp(properties, "Valor (€)") ??
+      findProp(properties, "Valor") ??
+      findProp(properties, "Valor EUR");
+    const stored = pointsProp ? parsePoints(values[pointsProp.id]) : 0;
+    if (stored > 0) return stored;
+    return suggestClientPoints(valueProp ? values[valueProp.id] : 0);
+  }
+
   return 0;
 }

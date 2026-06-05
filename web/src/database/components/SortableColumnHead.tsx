@@ -46,7 +46,7 @@ export function SortableColumnHead({
           type="button"
           draggable
           aria-label={`Reordenar coluna ${label}`}
-          className="cursor-grab touch-none p-0.5 text-zinc-600 hover:text-zinc-400 active:cursor-grabbing"
+          className="cursor-grab touch-none p-0.5 text-muted-foreground hover:text-muted-foreground active:cursor-grabbing"
           onDragStart={(e) => {
             e.dataTransfer.effectAllowed = "move";
             e.dataTransfer.setData("text/plain", propId);
@@ -59,22 +59,22 @@ export function SortableColumnHead({
       ) : null}
 
       {!sortable ? (
-        <span className="truncate font-mono text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+        <span className="truncate font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
           {label}
         </span>
       ) : (
         <button
           type="button"
           className={cn(
-            "group/sort inline-flex min-w-0 items-center gap-1 font-mono text-[10px] font-medium uppercase tracking-wider transition-colors",
-            direction ? "text-emerald-500" : "text-zinc-500 hover:text-zinc-300"
+            "group/sort inline-flex min-w-0 items-center gap-1 font-mono text-xs font-medium uppercase tracking-wider transition-colors",
+            direction ? "text-emerald-800 dark:text-emerald-500" : "text-muted-foreground hover:text-foreground"
           )}
           title="Shift+clique para ordenar por várias colunas"
           onClick={(e) => onSort(propId, e.shiftKey)}
         >
           <span className="truncate">{label}</span>
           {sortPriority != null ? (
-            <span className="font-mono text-[9px] tabular-nums text-emerald-600/80">
+            <span className="font-mono text-xs tabular-nums text-emerald-600/80">
               {sortPriority}
             </span>
           ) : null}

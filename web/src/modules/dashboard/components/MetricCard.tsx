@@ -32,7 +32,7 @@ export function MetricCard({
     <article
       className={cn(
         techCardClass,
-        "group flex flex-col transition-colors hover:border-zinc-700",
+        "group flex flex-col transition-colors hover:border-border",
         highlight && "border-emerald-900/60",
         className
       )}
@@ -43,25 +43,25 @@ export function MetricCard({
       />
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex size-9 items-center justify-center border border-zinc-800 bg-zinc-900">
-            <Icon className="size-4 text-emerald-500" aria-hidden />
+          <div className="flex size-9 items-center justify-center border border-border bg-card">
+            <Icon className="size-4 text-emerald-800 dark:text-emerald-500" aria-hidden />
           </div>
-          <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-600">
+          <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
             {label}
           </span>
         </div>
 
-        <p className="mt-4 text-3xl font-bold tabular-nums tracking-tight text-white">
+        <p className="mt-4 text-3xl font-bold tabular-nums tracking-tight text-foreground">
           {value}
         </p>
-        <p className="mt-1 text-xs text-zinc-500">{hint}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{hint}</p>
 
         {footer ? <div className="mt-4">{footer}</div> : null}
 
         {href ? (
           <Link
             to={href}
-            className="mt-4 inline-flex font-mono text-[10px] uppercase tracking-wider text-emerald-500 transition-colors hover:text-emerald-400"
+            className="mt-4 inline-flex font-mono text-xs uppercase tracking-wider text-emerald-800 dark:text-emerald-500 transition-colors hover:text-emerald-700 dark:hover:text-emerald-400"
           >
             {linkLabel}
           </Link>

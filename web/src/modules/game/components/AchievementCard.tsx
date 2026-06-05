@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import {
   gameGlassClass,
   gamePanelClass,
+  gameXpTextClass,
   rarityClass,
 } from "@/modules/game/styles/gameTokens";
 import type { GameAchievement } from "@/services/gameApi";
@@ -41,7 +42,7 @@ export function AchievementCard({ achievement }: AchievementCardProps) {
         gamePanelClass,
         gameGlassClass,
         "p-4 transition-all duration-200",
-        achievement.unlocked ? "border-emerald-800/40" : "opacity-50 grayscale"
+        achievement.unlocked ? "border-violet-800/40" : "opacity-50 grayscale"
       )}
     >
       <div className="flex items-start gap-3">
@@ -55,18 +56,18 @@ export function AchievementCard({ achievement }: AchievementCardProps) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-medium text-white">{achievement.name}</h3>
+            <h3 className="text-sm font-medium text-foreground">{achievement.name}</h3>
             <span
               className={cn(
-                "font-mono text-[9px] uppercase tracking-wider",
+                "font-mono text-xs uppercase tracking-wider",
                 rarity
               )}
             >
               {achievement.rarity}
             </span>
           </div>
-          <p className="mt-1 text-xs text-zinc-500">{achievement.description}</p>
-          <p className="mt-2 font-mono text-[10px] text-emerald-500">
+          <p className="mt-1 text-sm text-muted-foreground">{achievement.description}</p>
+          <p className={`mt-2 font-mono text-xs ${gameXpTextClass}`}>
             +{achievement.xpReward} XP
           </p>
         </div>

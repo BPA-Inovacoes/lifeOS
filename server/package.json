@@ -11,6 +11,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
+    "prisma:unlock": "tsx scripts/release-migrate-lock.ts",
     "prisma:seed": "prisma db seed"
   },
   "prisma": {
@@ -26,8 +27,10 @@
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
+    "pdfkit": "^0.18.0",
     "pino": "^9.6.0",
     "pino-http": "^10.4.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -36,6 +39,7 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.15.31",
+    "@types/pdfkit": "^0.17.6",
     "pino-pretty": "^13.0.0",
     "prisma": "^6.19.0",
     "tsx": "^4.19.4",

@@ -35,7 +35,7 @@ export function DataPanel({
         aria-hidden
       />
       {header ? (
-        <div className="border-b border-zinc-800 px-4 py-3">{header}</div>
+        <div className="border-b border-border px-4 py-3">{header}</div>
       ) : null}
       {children}
       {footer ? <div className={dataPanelFooterClass}>{footer}</div> : null}

@@ -3,5 +3,4 @@ export {
   authCardClass,
   authFieldClass,
   authPrimaryBtnClass,
-  authSocialBtnClass,
 } from "@/styles/designTokens";

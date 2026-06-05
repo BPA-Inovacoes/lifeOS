@@ -8,6 +8,8 @@ import { AuthService } from "./services/auth.service";
 import { AuthController } from "./controllers/auth.controller";
 import { PageController } from "./controllers/page.controller";
 import { UserController } from "./controllers/user.controller";
+import { CaseController } from "./controllers/case.controller";
+import { FinanceController } from "./controllers/finance.controller";
 import { GameController } from "./controllers/game.controller";
 import { DashboardController } from "./controllers/dashboard.controller";
 import { DatabaseController } from "./controllers/database.controller";
@@ -20,7 +22,10 @@ import { requestIdMiddleware } from "./middlewares/request-id.middleware";
 import { securityHeaders } from "./middlewares/security.middleware";
 import { GamificationEngine } from "./gamification/engine";
 import { ActivityService } from "./services/activity.service";
+import { CaseService } from "./services/case.service";
+import { FinanceService } from "./services/finance.service";
 import { GameService } from "./services/game.service";
+import { ShopService } from "./services/shop.service";
 import { DashboardService } from "./services/dashboard.service";
 import { DatabaseService } from "./services/database.service";
 import { SearchService } from "./services/search.service";
@@ -42,15 +47,21 @@ const databaseService = new DatabaseService(prisma, activityService);
 const pageController = new PageController(pageService, blockService);
 const searchService = new SearchService(prisma);
 const gameService = new GameService(prisma, activityService, gamificationEngine);
+const shopService = new ShopService(prisma, gamificationEngine);
+const financeService = new FinanceService(prisma, activityService);
 const dashboardService = new DashboardService(
   prisma,
   workspaceService,
-  activityService
+  activityService,
+  financeService
 );
 const databaseController = new DatabaseController(databaseService);
 const searchController = new SearchController(searchService);
 const dashboardController = new DashboardController(dashboardService);
-const gameController = new GameController({ game: gameService });
+const gameController = new GameController({ game: gameService, shop: shopService });
+const financeController = new FinanceController(financeService);
+const caseService = new CaseService(prisma, financeService, dashboardService, databaseService);
+const caseController = new CaseController(caseService);
 
 const app = express();
 
@@ -83,6 +94,8 @@ app.use(
     searchController,
     dashboardController,
     gameController,
+    financeController,
+    caseController,
   })
 );
 

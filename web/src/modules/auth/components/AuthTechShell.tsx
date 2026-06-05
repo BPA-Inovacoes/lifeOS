@@ -1,36 +1,34 @@
 import type { ReactNode } from "react";
 
+import { AppTechBackground } from "@/components/AppTechBackground";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 
 export function AuthTechShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-zinc-950 px-4 py-12">
+    <div className="relative min-h-dvh overflow-x-hidden overflow-y-auto bg-background">
+      <AppTechBackground fixed className="z-0" />
+      <div className="absolute right-4 top-4 z-20 sm:right-6 sm:top-6">
+        <ThemeToggle showSystem />
+      </div>
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.35]"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, rgb(39 39 42 / 0.5) 1px, transparent 1px),
-            linear-gradient(to bottom, rgb(39 39 42 / 0.5) 1px, transparent 1px)
-          `,
-          backgroundSize: "48px 48px",
-        }}
+        className="pointer-events-none absolute left-0 top-0 z-[1] h-px w-full bg-gradient-to-r from-transparent via-emerald-600/60 to-transparent"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgb(9,9,11)_72%)]"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-emerald-600/60 to-transparent"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-zinc-700/40 to-transparent"
+        className="pointer-events-none absolute bottom-0 left-0 z-[1] h-px w-full bg-gradient-to-r from-transparent via-border to-transparent"
         aria-hidden
       />
 
-      <div className={cn("relative z-10 flex w-full max-w-[400px] flex-col gap-8")}>
-        {children}
+      <div className="relative z-10 flex min-h-dvh flex-col items-center justify-center px-4 py-5 sm:py-8">
+        <div
+          className={cn(
+            "flex w-full max-w-[400px] flex-col gap-5 sm:gap-6",
+            "max-h-none py-2 sm:py-4"
+          )}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ type DatabaseSkeletonProps = {
 export function DatabaseSkeleton({ view = "TABLE" }: DatabaseSkeletonProps) {
   return (
     <div className="space-y-8" aria-busy aria-label="A carregar base de dados">
-      <div className="space-y-3 border-b border-zinc-800 pb-6">
+      <div className="space-y-3 border-b border-border pb-6">
         <Bone className="h-3 w-48" />
         <Bone className="h-9 w-64" />
         <Bone className="h-4 w-32" />

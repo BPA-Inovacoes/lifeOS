@@ -8,6 +8,8 @@ import {
   DashboardSkeleton,
   FocusCards,
   FocusNow,
+  CaseInsightsWidget,
+  FinanceFocusWidget,
   HabitStreaks,
   QuickInbox,
   TodayLists,
@@ -22,6 +24,7 @@ import {
 import { fetchDashboard } from "@/services/dashboardApi";
 import { toast } from "@/store/toastStore";
 import { createWorkspace } from "@/services/workspaceApi";
+import { paths } from "@/routes/paths";
 import { useAuthStore } from "@/store/authStore";
 
 export function DashboardPage() {
@@ -45,7 +48,7 @@ export function DashboardPage() {
       qc.invalidateQueries({ queryKey: ["workspaces"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Espaço criado");
-      navigate(`/w/${res.workspace.id}`);
+      navigate(paths.focus.workspace(res.workspace.id));
     },
     onError: (e) => {
       setCreateError(workspaceCreateErrorMessage(e));
@@ -60,7 +63,7 @@ export function DashboardPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-10 p-6 md:p-10">
       <div className="flex justify-end">
-        <span className="border border-zinc-800 bg-zinc-950/80 px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-zinc-500">
+        <span className="border border-border bg-background/80 px-3 py-1 font-mono text-xs uppercase tracking-wider text-muted-foreground">
           Focus Mode
         </span>
       </div>
@@ -82,6 +85,8 @@ export function DashboardPage() {
         <div className="space-y-10">
           {data.links.inbox ? <QuickInbox inbox={data.links.inbox} /> : null}
           <FocusNow data={data} />
+          <CaseInsightsWidget />
+          {data.finance?.enabled ? <FinanceFocusWidget finance={data.finance} /> : null}
           <FocusCards data={data} />
           <XpWeekChart
             days={data.weeklyXp}

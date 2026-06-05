@@ -4,6 +4,7 @@ export const WORKSPACE_DATABASE_TEMPLATES = [
   "HABITS",
   "GOALS",
   "STUDIES",
+  "CLIENTS",
   "PROJECTS",
   "WEEKLY_PLANNING",
 ] as const;

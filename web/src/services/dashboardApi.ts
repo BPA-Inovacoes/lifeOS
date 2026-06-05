@@ -152,6 +152,37 @@ export type FocusTask = {
 
 
 
+export type FinanceFocusSnapshot =
+  | { enabled: false }
+  | {
+      enabled: true;
+      hasAccounts: false;
+      currency: string;
+      netWorth: number;
+      savingsRate: number;
+      weeklyReviewPending: boolean;
+      activeMethod: null;
+      nextStepLabel: string;
+      overBudgetCount?: number;
+    }
+  | {
+      enabled: true;
+      hasAccounts: true;
+      currency: string;
+      netWorth: number;
+      savingsRate: number;
+      weeklyReviewPending: boolean;
+      activeMethod: {
+        id: string;
+        name: string;
+        stepTitle: string | null;
+        stepIndex: number;
+        totalSteps: number;
+      } | null;
+      nextStepLabel: string;
+      overBudgetCount?: number;
+    };
+
 export type DashboardSummary = {
 
   metrics: DashboardMetrics;
@@ -165,6 +196,8 @@ export type DashboardSummary = {
   taskPreview: TaskPreview[];
 
   habitPreview: HabitPreview[];
+
+  finance: FinanceFocusSnapshot;
 
   links: {
 

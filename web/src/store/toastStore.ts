@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type ToastVariant = "success" | "error" | "info";
+export type ToastVariant = "success" | "error" | "info" | "rpg";
 
 export type Toast = {
   id: string;
@@ -33,4 +33,5 @@ export const toast = {
   success: (message: string) => useToastStore.getState().push(message, "success"),
   error: (message: string) => useToastStore.getState().push(message, "error"),
   info: (message: string) => useToastStore.getState().push(message, "info"),
+  rpg: (message: string) => useToastStore.getState().push(message, "rpg"),
 };

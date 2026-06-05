@@ -46,21 +46,21 @@ export function QuickInbox({ inbox }: QuickInboxProps) {
   };
 
   return (
-    <section className="relative border border-zinc-800 bg-zinc-950">
+    <section className="relative border border-border bg-background/85 backdrop-blur-sm">
       <div className="absolute left-0 top-0 h-0.5 w-full bg-emerald-600/80" aria-hidden />
       <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:p-5">
         <div className="flex min-w-0 items-start gap-3 md:w-48 md:shrink-0">
-          <span className="flex size-9 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-900">
+          <span className="flex size-9 shrink-0 items-center justify-center border border-border bg-card">
             <Inbox className="size-4 text-emerald-600/80" />
           </span>
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-600/80">
+            <p className="font-mono text-xs uppercase tracking-[0.2em] text-emerald-600/80">
               // entrada
             </p>
-            <p className="mt-0.5 text-sm font-medium text-zinc-200">
+            <p className="mt-0.5 text-sm font-medium text-foreground">
               Captura rápida
             </p>
-            <p className="mt-1 text-xs text-zinc-600">
+            <p className="mt-1 text-sm text-muted-foreground">
               Enter para adicionar às tarefas
             </p>
           </div>
@@ -91,13 +91,13 @@ export function QuickInbox({ inbox }: QuickInboxProps) {
               onClick={submit}
             >
               <CornerDownLeft className="size-4" />
-              <span className="hidden font-mono text-[10px] uppercase sm:inline">
+              <span className="hidden font-mono text-xs uppercase sm:inline">
                 {create.isPending ? "A guardar…" : "Adicionar"}
               </span>
             </Button>
           </div>
           {error ? (
-            <p className="mt-2 text-xs text-red-400">{error}</p>
+            <p className="mt-2 text-sm text-red-700 dark:text-red-400">{error}</p>
           ) : null}
         </div>
       </div>

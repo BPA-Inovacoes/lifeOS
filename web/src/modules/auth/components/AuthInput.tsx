@@ -25,9 +25,9 @@ function hasValue(value: string | number | readonly string[] | undefined) {
   return String(value ?? "").length > 0;
 }
 
-const iconIdle = "text-zinc-600 transition-colors duration-200";
+const iconIdle = "text-muted-foreground transition-colors duration-200";
 const iconActive =
-  "text-emerald-500 drop-shadow-[0_0_6px_rgba(16,185,129,0.45)] transition-colors duration-200";
+  "text-emerald-800 dark:text-emerald-500 drop-shadow-[0_0_6px_rgba(16,185,129,0.45)] transition-colors duration-200";
 
 function mergeRef<T>(...refs: (Ref<T> | undefined)[]) {
   return (node: T | null) => {
@@ -73,8 +73,8 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
         <label
           htmlFor={id}
           className={cn(
-            "flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider transition-colors duration-200",
-            filled ? "text-zinc-400" : "text-zinc-500"
+            "flex items-center gap-1.5 font-mono text-sm uppercase tracking-wider transition-colors duration-200",
+            filled ? "text-muted-foreground" : "text-muted-foreground"
           )}
         >
           <Icon
@@ -106,12 +106,12 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
             {...props}
           />
           {trailing ? (
-            <div className="absolute right-0 top-0 flex h-12 items-center pr-3">
+            <div className="absolute right-0 top-0 flex h-11 items-center pr-3">
               {trailing}
             </div>
           ) : null}
         </div>
-        {error ? <p className="text-xs text-red-400">{error}</p> : null}
+        {error ? <p className="text-sm text-red-700 dark:text-red-400">{error}</p> : null}
       </div>
     );
   }

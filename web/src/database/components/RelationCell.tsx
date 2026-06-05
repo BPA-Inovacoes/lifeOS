@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import { rowLabelFromProperties } from "@/database/utils/rowLabel";
 import { fetchDatabase } from "@/services/databaseApi";
+import { paths } from "@/routes/paths";
 import { fieldClass } from "@/styles/designTokens";
 import { cn } from "@/lib/utils";
 import type { DatabaseProperty } from "@/types/database";
@@ -43,20 +44,20 @@ export function RelationCell({
         className={cn(fieldClass, "h-9 min-w-0 flex-1 cursor-pointer text-xs")}
         onChange={(e) => onChange(e.target.value || null)}
       >
-        <option value="" className="bg-zinc-900">
+        <option value="" className="bg-card">
           {isLoading ? "A carregar…" : "—"}
         </option>
         {rows.map((row) => (
-          <option key={row.id} value={row.id} className="bg-zinc-900">
+          <option key={row.id} value={row.id} className="bg-card">
             {rowLabelFromProperties(props, row.properties)}
           </option>
         ))}
       </select>
       {strValue && relatedId ? (
         <Link
-          to={`/w/${workspaceId}/db/${relatedId}`}
+          to={paths.focus.database(workspaceId, relatedId)}
           title="Abrir base relacionada"
-          className="shrink-0 rounded-none border border-zinc-800 p-1.5 text-emerald-600/80 transition-colors hover:border-emerald-800 hover:text-emerald-500"
+          className="shrink-0 rounded-none border border-border p-1.5 text-emerald-600/80 transition-colors hover:border-emerald-800 hover:text-emerald-500"
         >
           <ExternalLink className="size-3.5" aria-hidden />
           <span className="sr-only">Abrir base relacionada</span>

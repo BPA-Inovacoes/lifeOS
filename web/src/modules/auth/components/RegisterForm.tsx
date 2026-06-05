@@ -9,6 +9,8 @@ import { AuthInput } from "@/modules/auth/components/AuthInput";
 import { registerRequest } from "@/services/authApi";
 import { ApiError, flattenApiErrors } from "@/services/http";
 import { useAuthStore } from "@/store/authStore";
+import { useAppModeStore } from "@/store/appModeStore";
+import { paths } from "@/routes/paths";
 import {
   authCardAccent,
   authCardClass,
@@ -27,6 +29,7 @@ type RegisterValues = z.infer<typeof registerSchema>;
 export function RegisterForm() {
   const navigate = useNavigate();
   const setSession = useAuthStore((s) => s.setSession);
+  const clearActiveMode = useAppModeStore((s) => s.clearActiveMode);
   const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -45,7 +48,8 @@ export function RegisterForm() {
     try {
       const { token, user } = await registerRequest(values);
       setSession({ token, user });
-      navigate("/dashboard", { replace: true });
+      clearActiveMode();
+      navigate(paths.modeSelect, { replace: true });
     } catch (e) {
       if (e instanceof ApiError) {
         setFormError(flattenApiErrors(e.body) ?? e.message);
@@ -60,14 +64,14 @@ export function RegisterForm() {
   return (
     <form onSubmit={onSubmit} className={authCardClass}>
       <div className={authCardAccent} aria-hidden />
-      <div className="mb-8 border-b border-zinc-800 pb-6">
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-600/90">
+      <div className="mb-8 border-b border-border pb-6">
+        <p className="font-mono text-xs uppercase tracking-[0.2em] text-emerald-600/90">
           // inicializar
         </p>
-        <h2 className="mt-2 text-lg font-semibold tracking-tight text-white">
+        <h2 className="mt-2 text-lg font-semibold tracking-tight text-foreground">
           Criar conta
         </h2>
-        <p className="mt-1 text-sm text-zinc-500">Registo no LifeOS</p>
+        <p className="mt-1 text-sm text-muted-foreground">Registo no LifeOS</p>
       </div>
 
       <div className="space-y-4">
@@ -102,7 +106,7 @@ export function RegisterForm() {
           trailing={
             <button
               type="button"
-              className="text-zinc-500 transition-colors hover:text-zinc-300"
+              className="text-muted-foreground transition-colors hover:text-foreground"
               aria-label={showPassword ? "Ocultar palavra-passe" : "Mostrar palavra-passe"}
               onClick={() => setShowPassword((v) => !v)}
             >
@@ -118,7 +122,7 @@ export function RegisterForm() {
       </div>
 
       {formError ? (
-        <p className="mt-4 rounded-none border border-red-900/80 bg-red-950 px-3 py-2 text-center text-xs text-red-300">
+        <p className="mt-4 rounded-none border border-red-900/80 bg-red-950 px-3 py-2 text-center text-sm text-red-300">
           {formError}
         </p>
       ) : null}
@@ -132,11 +136,11 @@ export function RegisterForm() {
         {busy ? "A criar…" : "CRIAR CONTA"}
       </button>
 
-      <p className="mt-8 text-center text-sm text-zinc-500">
+      <p className="mt-8 text-center text-sm text-muted-foreground">
         Já tens conta?{" "}
         <Link
           to="/login"
-          className="font-medium text-white hover:text-emerald-500 hover:underline"
+          className="font-medium text-foreground hover:text-emerald-500 hover:underline"
         >
           Entrar
         </Link>

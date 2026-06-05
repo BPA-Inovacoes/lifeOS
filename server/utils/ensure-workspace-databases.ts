@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 
+import { HABIT_RPG_AREA_OPTIONS } from "../gamification/habit-areas";
 import {
   syncWorkspaceRelations,
 } from "./database-relations";
@@ -91,14 +92,64 @@ export async function ensureHabitsDatabase(
             sortOrder: 1,
             config: { options: ["Diário", "Semanal"] },
           },
-          { name: "Pontos", type: "NUMBER", sortOrder: 2 },
-          { name: "Feito hoje", type: "CHECKBOX", sortOrder: 3 },
+          {
+            name: "Área RPG",
+            type: "SELECT",
+            sortOrder: 2,
+            config: { options: [...HABIT_RPG_AREA_OPTIONS] },
+          },
+          { name: "Pontos", type: "NUMBER", sortOrder: 3 },
+          { name: "Feito hoje", type: "CHECKBOX", sortOrder: 4 },
         ],
       },
       views: {
         create: [
           { name: "Lista", type: "LIST", sortOrder: 0 },
           { name: "Tabela", type: "TABLE", sortOrder: 1 },
+        ],
+      },
+    },
+    include,
+  });
+}
+
+/** Database Clientes (pipeline comercial → Finanças no RPG). */
+export async function ensureClientsDatabase(
+  prisma: DbClient,
+  workspaceId: string
+) {
+  const existing = await prisma.database.findFirst({
+    where: { workspaceId, template: "CLIENTS" },
+    include,
+  });
+  if (existing) return existing;
+
+  return prisma.database.create({
+    data: {
+      workspaceId,
+      name: "Clientes",
+      icon: "💼",
+      template: "CLIENTS",
+      properties: {
+        create: [
+          { name: "Cliente", type: "TEXT", sortOrder: 0 },
+          {
+            name: "Estado",
+            type: "STATUS",
+            sortOrder: 1,
+            config: {
+              options: ["Lead", "Negociação", "Fechado"],
+            },
+          },
+          { name: "Valor (€)", type: "NUMBER", sortOrder: 2 },
+          { name: "Pontos", type: "NUMBER", sortOrder: 3 },
+          { name: "Data fecho", type: "DATE", sortOrder: 4 },
+        ],
+      },
+      views: {
+        create: [
+          { name: "Tabela", type: "TABLE", sortOrder: 0 },
+          { name: "Quadro", type: "BOARD", sortOrder: 1 },
         ],
       },
     },
@@ -274,6 +325,9 @@ export async function provisionWorkspaceDatabases(
   }
   if (selected.has("STUDIES")) {
     await ensureStudiesDatabase(prisma, workspaceId);
+  }
+  if (selected.has("CLIENTS")) {
+    await ensureClientsDatabase(prisma, workspaceId);
   }
   if (selected.has("PROJECTS")) {
     await ensureProjectsDatabase(prisma, workspaceId);

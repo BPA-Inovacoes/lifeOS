@@ -21,6 +21,8 @@ import {
   deleteDatabaseRow,
   updateDatabaseRow,
 } from "@/services/databaseApi";
+import { applyRowGamificationFeedback } from "@/modules/game/utils/gamificationFeedback";
+import { ClientFinanceLinkBadge } from "@/database/components/ClientFinanceLinkBadge";
 import type { DatabaseDetail } from "@/services/databaseApi";
 import type { DatabaseProperty, DatabaseRow } from "@/types/database";
 import { rowPointsFromProps } from "@/utils/points";
@@ -118,6 +120,11 @@ export function BoardView({ workspaceId, database, queryKey }: BoardViewProps) {
           },
         };
       });
+      applyRowGamificationFeedback(qc, data.gamification);
+      void qc.invalidateQueries({
+        queryKey: ["dashboard"],
+        refetchType: "none",
+      });
     },
   });
 
@@ -170,7 +177,7 @@ export function BoardView({ workspaceId, database, queryKey }: BoardViewProps) {
         <ViewToolbar label={VIEW_LABELS.BOARD} hint={viewHint("BOARD")} />
         <ViewRequirementNotice>
           Adiciona uma propriedade do tipo{" "}
-          <strong className="text-zinc-400">Estado</strong> para usar o quadro
+          <strong className="text-muted-foreground">Estado</strong> para usar o quadro
           Kanban.
         </ViewRequirementNotice>
       </>
@@ -215,10 +222,10 @@ export function BoardView({ workspaceId, database, queryKey }: BoardViewProps) {
             <div
               key={column}
               className={cn(
-                "flex w-72 shrink-0 flex-col border bg-zinc-950 transition-colors",
+                "flex w-72 shrink-0 flex-col border bg-background transition-colors",
                 isDropTarget
                   ? "border-emerald-600/60 bg-emerald-950/20"
-                  : "border-zinc-800"
+                  : "border-border"
               )}
               onDragOver={(e) => {
                 e.preventDefault();
@@ -235,9 +242,9 @@ export function BoardView({ workspaceId, database, queryKey }: BoardViewProps) {
                 className={cn("h-1 w-full shrink-0", boardColumnAccent(column))}
                 aria-hidden
               />
-              <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-3">
+              <div className="flex items-center justify-between border-b border-border px-3 py-3">
                 <span className={cnStatus(column)}>{column}</span>
-                <span className="font-mono text-[10px] tabular-nums text-zinc-600">
+                <span className="font-mono text-xs tabular-nums text-muted-foreground">
                   {rows.length}
                 </span>
               </div>
@@ -246,7 +253,7 @@ export function BoardView({ workspaceId, database, queryKey }: BoardViewProps) {
                 {rows.length === 0 ? (
                   <p
                     className={cn(
-                      "px-2 py-6 text-center font-mono text-[10px] uppercase",
+                      "px-2 py-6 text-center font-mono text-xs uppercase",
                       isDropTarget ? "text-emerald-600/70" : "text-zinc-700"
                     )}
                   >
@@ -274,26 +281,32 @@ export function BoardView({ workspaceId, database, queryKey }: BoardViewProps) {
                           setDragOverColumn(null);
                         }}
                         className={cn(
-                          "group/card relative flex border border-zinc-800 bg-zinc-900 transition-colors",
+                          "group/card relative flex border border-border bg-card transition-colors",
                           isDragging && "opacity-40",
                           !isDragging && "hover:border-emerald-800/50"
                         )}
                       >
                         <span
-                          className="flex w-7 shrink-0 cursor-grab items-center justify-center border-r border-zinc-800 text-zinc-600 active:cursor-grabbing"
+                          className="flex w-7 shrink-0 cursor-grab items-center justify-center border-r border-border text-muted-foreground active:cursor-grabbing"
                           aria-hidden
                         >
                           <GripVertical className="size-3.5" />
                         </span>
                         <div className="min-w-0 flex-1 px-2 py-2.5 pr-7">
-                          <span className="line-clamp-2 text-sm text-zinc-200">
+                          <span className="line-clamp-2 text-sm text-foreground">
                             {title}
                           </span>
                           {pts > 0 ? (
-                            <span className="mt-1.5 inline-flex items-center gap-1 border border-zinc-700 bg-zinc-950 px-1.5 py-0.5 font-mono text-[9px] text-emerald-500/90">
+                            <span className="mt-1.5 inline-flex items-center gap-1 border border-border bg-background px-1.5 py-0.5 font-mono text-sm text-emerald-800/90 dark:text-emerald-500/90">
                               <Zap className="size-3" />
                               {pts} pt
                             </span>
+                          ) : null}
+                          {database.template === "CLIENTS" &&
+                          database.clientFinanceLinks?.[row.id] ? (
+                            <ClientFinanceLinkBadge
+                              link={database.clientFinanceLinks[row.id]}
+                            />
                           ) : null}
                         </div>
                         <button
@@ -318,7 +331,7 @@ export function BoardView({ workspaceId, database, queryKey }: BoardViewProps) {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="justify-start gap-2 font-mono text-[10px] uppercase"
+                  className="justify-start gap-2 font-mono text-xs uppercase"
                   disabled={addRow.isPending}
                   onClick={() => addRow.mutate(column)}
                 >
@@ -332,7 +345,7 @@ export function BoardView({ workspaceId, database, queryKey }: BoardViewProps) {
       </div>
 
       <ViewPanelFooter
-        className="mt-0 border border-t-0 border-zinc-800 bg-zinc-900/40"
+        className="mt-0 border border-t-0 border-border bg-secondary/40"
         countLabel={formatRowCount(database.rows.length, database.template)}
         addLabel={addRowButtonLabel(database.template)}
         addDisabled={addRow.isPending}

@@ -1,6 +1,8 @@
 export { DashboardHeader } from "@/modules/dashboard/components/DashboardHeader";
 export { QuickInbox } from "@/modules/dashboard/components/QuickInbox";
 export { FocusNow } from "@/modules/dashboard/components/FocusNow";
+export { CaseInsightsWidget } from "@/modules/dashboard/components/CaseInsightsWidget";
+export { FinanceFocusWidget } from "@/modules/dashboard/components/FinanceFocusWidget";
 export { XpWeekChart } from "@/modules/dashboard/components/XpWeekChart";
 export { HabitStreaks } from "@/modules/dashboard/components/HabitStreaks";
 export { DashboardSkeleton } from "@/modules/dashboard/components/DashboardSkeleton";

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { gameNeonTextClass } from "@/modules/game/styles/gameTokens";
+import { gameNeonTextClass, gameProgressBarClass } from "@/modules/game/styles/gameTokens";
 
 type XPBarProps = {
   percent: number;
@@ -22,20 +22,20 @@ export function XPBar({
     <div className={className}>
       <div
         className={cn(
-          "relative overflow-hidden border border-zinc-700/60 bg-zinc-900/80",
+          "relative overflow-hidden border border-border/60 bg-secondary/80",
           compact ? "h-1.5" : "h-2"
         )}
       >
         <div
-          className="h-full bg-gradient-to-r from-emerald-700 via-emerald-500 to-cyan-500 transition-all duration-700 ease-out"
+          className={`h-full transition-all duration-700 ease-out ${gameProgressBarClass}`}
           style={{ width: `${clamped}%` }}
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-60" />
       </div>
       {!compact ? (
-        <p className="mt-1.5 font-mono text-[10px] text-zinc-500">
+        <p className="mt-1.5 font-mono text-sm text-muted-foreground">
           <span className={gameNeonTextClass}>{xpInLevel}</span>
-          <span className="text-zinc-600"> / {xpNeeded} XP</span>
+          <span className="text-muted-foreground"> / {xpNeeded} XP</span>
         </p>
       ) : null}
     </div>

@@ -1,18 +1,73 @@
-import type { PrismaClient } from "@prisma/client";
+import type { MissionPeriod, PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
-import { attributeLabel, attributeTier } from "../gamification/attributes";
+import { fetchGameChallenges } from "../gamification/challenges";
+import { resolvePlayerClass } from "../gamification/classes";
+import { attributeLabel, attributeTier, ATTRIBUTE_KEYS } from "../gamification/attributes";
 import { GamificationEngine } from "../gamification/engine";
 import { levelProgress } from "../gamification/levels";
-import { DAILY_MISSIONS } from "../gamification/missions";
+import { missionsForPeriod } from "../gamification/missions";
 import { phaseProgress } from "../gamification/phases";
 import { canPrestige, prestigeLabel } from "../gamification/prestige";
-import { addDays, toDayDate, toDayKey } from "../utils/day";
+import { addDays, startOfMonth, startOfWeek, toDayDate, toDayKey } from "../utils/day";
 import type { ActivityService } from "./activity.service";
 
 const toggleSchema = z.object({
   enabled: z.boolean(),
 });
+
+function profilePayload(
+  profile: Awaited<ReturnType<GamificationEngine["ensureProfile"]>>,
+  attributes: { key: string; value: number }[]
+) {
+  const progress = levelProgress(profile.totalXp);
+  const phase = phaseProgress(progress.level);
+  const attrMap = Object.fromEntries(
+    attributes.map((item) => [item.key, Math.round(item.value)])
+  ) as Partial<Record<(typeof ATTRIBUTE_KEYS)[number], number>>;
+  const playerClass = resolvePlayerClass(attrMap);
+
+  return {
+    lifeCoins: profile.lifeCoins,
+    lifetimeCoins: profile.lifetimeCoins,
+    gameModeEnabled: profile.gameModeEnabled,
+    totalXp: profile.lifetimeXp,
+    progressXp: profile.totalXp,
+    level: progress.level,
+    rank: progress.rank,
+    rankLabel: progress.rankLabel,
+    rankTitle: progress.rankTitle,
+    playerClass: playerClass.key,
+    playerClassLabel: playerClass.label,
+    phase: phase.phase.label,
+    phaseKey: phase.phase.key,
+    phaseTheme: phase.phase.theme,
+    prestige: profile.prestigeLevel,
+    prestigeLabel: prestigeLabel(profile.prestigeLevel),
+    canPrestige: canPrestige(progress.level),
+    ascensionCount: profile.ascensionCount,
+    xpInLevel: progress.xpInLevel,
+    xpNeeded: progress.xpNeeded,
+    xpToNextLevel: progress.xpToNextLevel,
+    levelPercent: progress.percent,
+    avatarIcon: profile.avatarIcon,
+    displayTitle: profile.displayTitle,
+    currentStreak: profile.currentStreak,
+    tasksCompleted: profile.tasksCompleted,
+    habitsCompleted: profile.habitsCompleted,
+    studyHours: Math.round((profile.studyMinutes / 60) * 10) / 10,
+    goalsCompleted: profile.goalsCompleted,
+    activeDays: profile.activeDays,
+    deepWorkDays: profile.deepWorkDays,
+    perfectWeeks: profile.perfectWeeks,
+    consistencyRate: Math.min(100, Math.round((profile.activeDays / 30) * 100)),
+    evolution: {
+      completedLevels: phase.completedLevels,
+      totalLevels: phase.totalLevels,
+      percent: phase.percent,
+    },
+  };
+}
 
 export class GameService {
   constructor(
@@ -30,43 +85,11 @@ export class GameService {
   }
 
   async getProfile(userId: string) {
-    const profile = await this.engine.ensureProfile(userId);
-    const progress = levelProgress(profile.totalXp);
-    const phase = phaseProgress(progress.level);
-
-    return {
-      gameModeEnabled: profile.gameModeEnabled,
-      totalXp: profile.lifetimeXp,
-      progressXp: profile.totalXp,
-      level: progress.level,
-      rank: progress.rank,
-      phase: phase.phase.label,
-      phaseKey: phase.phase.key,
-      phaseTheme: phase.phase.theme,
-      prestige: profile.prestigeLevel,
-      prestigeLabel: prestigeLabel(profile.prestigeLevel),
-      canPrestige: canPrestige(progress.level),
-      ascensionCount: profile.ascensionCount,
-      xpInLevel: progress.xpInLevel,
-      xpNeeded: progress.xpNeeded,
-      xpToNextLevel: progress.xpToNextLevel,
-      levelPercent: progress.percent,
-      avatarIcon: profile.avatarIcon,
-      currentStreak: profile.currentStreak,
-      tasksCompleted: profile.tasksCompleted,
-      habitsCompleted: profile.habitsCompleted,
-      studyHours: Math.round((profile.studyMinutes / 60) * 10) / 10,
-      goalsCompleted: profile.goalsCompleted,
-      activeDays: profile.activeDays,
-      deepWorkDays: profile.deepWorkDays,
-      perfectWeeks: profile.perfectWeeks,
-      consistencyRate: Math.min(100, Math.round((profile.activeDays / 30) * 100)),
-      evolution: {
-        completedLevels: phase.completedLevels,
-        totalLevels: phase.totalLevels,
-        percent: phase.percent,
-      },
-    };
+    const profile = await this.engine.loadProfile(userId);
+    const attributes = await this.prisma.userAttribute.findMany({
+      where: { userId },
+    });
+    return profilePayload(profile, attributes);
   }
 
   async toggleMode(userId: string, enabled: boolean) {
@@ -81,86 +104,63 @@ export class GameService {
   }
 
   async getDashboard(userId: string) {
-    const profile = await this.engine.ensureProfile(userId);
-    const progress = levelProgress(profile.totalXp);
-    const phase = phaseProgress(progress.level);
+    const profile = await this.engine.loadProfile(userId);
 
-    const [attributes, achievements, activity, missions, weeklyXp, prestigeHistory] =
-      await Promise.all([
-        this.prisma.userAttribute.findMany({
-          where: { userId },
-          orderBy: { value: "desc" },
-        }),
-        this.prisma.achievementDefinition.findMany({
-          orderBy: { sortOrder: "asc" },
-          include: {
-            userAchievements: {
-              where: { userId },
-              take: 1,
-            },
+    const [
+      attributes,
+      achievements,
+      activity,
+      missions,
+      weeklyXp,
+      prestigeHistory,
+      challenges,
+      xpDistribution,
+      heatmap,
+    ] = await Promise.all([
+      this.prisma.userAttribute.findMany({
+        where: { userId },
+        orderBy: { value: "desc" },
+      }),
+      this.prisma.achievementDefinition.findMany({
+        orderBy: { sortOrder: "asc" },
+        include: {
+          userAchievements: {
+            where: { userId },
+            take: 1,
           },
-        }),
-        this.prisma.gameActivityLog.findMany({
-          where: { userId },
-          orderBy: { createdAt: "desc" },
-          take: 30,
-        }),
-        this.getMissionsWithDefs(userId),
-        this.activity.getWeeklyXp(userId, 7),
-        this.prisma.prestigeReset.findMany({
-          where: { userId },
-          orderBy: { createdAt: "desc" },
-          take: 6,
-        }),
-      ]);
+        },
+      }),
+      this.prisma.gameActivityLog.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: 30,
+      }),
+      this.getAllMissions(userId),
+      this.activity.getWeeklyXp(userId, 7),
+      this.prisma.prestigeReset.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: 6,
+      }),
+      fetchGameChallenges(this.prisma, userId),
+      this.getXpDistribution(userId),
+      this.getActivityHeatmap(userId, 365),
+    ]);
 
     const maxAttr = Math.max(1, ...attributes.map((item) => item.value));
-    const normalizedAttributes = attributes.map((item) => ({
-      key: item.key,
-      label: attributeLabel(item.key),
-      value: Math.round(item.value),
-      percent: Math.min(100, Math.round((item.value / maxAttr) * 100)),
-      tier: attributeTier(item.value),
-      delta: Math.round(item.lastDelta),
-    }));
-
-    const xpDistribution = await this.getXpDistribution(userId);
-    const heatmap = await this.getActivityHeatmap(userId, 90);
+    const normalizedAttributes = attributes
+      .filter((item) => ATTRIBUTE_KEYS.includes(item.key as (typeof ATTRIBUTE_KEYS)[number]))
+      .map((item) => ({
+        key: item.key,
+        label: attributeLabel(item.key),
+        value: Math.round(item.value),
+        percent: Math.min(100, Math.round((item.value / maxAttr) * 100)),
+        tier: attributeTier(item.value),
+        delta: Math.round(item.lastDelta),
+      }));
 
     return {
-      profile: {
-        gameModeEnabled: profile.gameModeEnabled,
-        totalXp: profile.lifetimeXp,
-        progressXp: profile.totalXp,
-        level: progress.level,
-        rank: progress.rank,
-        phase: phase.phase.label,
-        phaseKey: phase.phase.key,
-        phaseTheme: phase.phase.theme,
-        prestige: profile.prestigeLevel,
-        prestigeLabel: prestigeLabel(profile.prestigeLevel),
-        canPrestige: canPrestige(progress.level),
-        ascensionCount: profile.ascensionCount,
-        xpInLevel: progress.xpInLevel,
-        xpNeeded: progress.xpNeeded,
-        xpToNextLevel: progress.xpToNextLevel,
-        levelPercent: progress.percent,
-        avatarIcon: profile.avatarIcon,
-        currentStreak: profile.currentStreak,
-        tasksCompleted: profile.tasksCompleted,
-        habitsCompleted: profile.habitsCompleted,
-        studyHours: Math.round((profile.studyMinutes / 60) * 10) / 10,
-        goalsCompleted: profile.goalsCompleted,
-        activeDays: profile.activeDays,
-        deepWorkDays: profile.deepWorkDays,
-        perfectWeeks: profile.perfectWeeks,
-        consistencyRate: Math.min(100, Math.round((profile.activeDays / 30) * 100)),
-        evolution: {
-          completedLevels: phase.completedLevels,
-          totalLevels: phase.totalLevels,
-          percent: phase.percent,
-        },
-      },
+      profile: profilePayload(profile, attributes),
       attributes: normalizedAttributes,
       achievements: achievements.map((item) => ({
         id: item.id,
@@ -173,7 +173,11 @@ export class GameService {
         unlocked: item.userAchievements.length > 0,
         unlockedAt: item.userAchievements[0]?.unlockedAt?.toISOString() ?? null,
       })),
-      missions,
+      missions: missions.daily,
+      missionsDaily: missions.daily,
+      missionsWeekly: missions.weekly,
+      missionsMonthly: missions.monthly,
+      challenges,
       activityFeed: activity.map((item) => ({
         id: item.id,
         type: item.type,
@@ -192,20 +196,31 @@ export class GameService {
     };
   }
 
-  private async getMissionsWithDefs(userId: string) {
-    const today = toDayDate();
-    await this.engine.ensureDailyMissions(userId);
+  private async getAllMissions(userId: string) {
+    await this.engine.ensureMissions(userId);
+
+    const [daily, weekly, monthly] = await Promise.all([
+      this.loadMissions(userId, "DAILY", toDayDate()),
+      this.loadMissions(userId, "WEEKLY", startOfWeek()),
+      this.loadMissions(userId, "MONTHLY", startOfMonth()),
+    ]);
+
+    return { daily, weekly, monthly };
+  }
+
+  private async loadMissions(userId: string, period: MissionPeriod, date: Date) {
     const rows = await this.prisma.dailyMissionProgress.findMany({
-      where: { userId, date: today },
+      where: { userId, period, date },
     });
 
-    return DAILY_MISSIONS.map((def) => {
+    return missionsForPeriod(period).map((def) => {
       const row = rows.find((item) => item.missionKey === def.key);
       return {
         key: def.key,
         title: def.title,
         description: def.description,
         icon: def.icon,
+        period: def.period,
         target: row?.target ?? def.defaultTarget,
         progress: row?.progress ?? 0,
         completed: row?.completed ?? false,
@@ -227,6 +242,7 @@ export class GameService {
       habits: map.get("HABIT") ?? 0,
       goals: map.get("GOAL") ?? 0,
       studies: map.get("STUDY") ?? 0,
+      clients: map.get("CLIENT") ?? 0,
     };
   }
 

@@ -16,10 +16,15 @@ export function AuthBrand({ size = "default", className }: AuthBrandProps) {
         size={compact ? "compact" : "default"}
         tagline={PRODUCT_TAGLINE_AUTH}
       />
-      <div className="mx-auto mt-4 flex w-full max-w-[200px] items-center gap-2">
-        <div className="h-px flex-1 bg-zinc-800" />
-        <span className="font-mono text-[9px] text-zinc-600">v1.0</span>
-        <div className="h-px flex-1 bg-zinc-800" />
+      <div
+        className={cn(
+          "mx-auto flex w-full max-w-[200px] items-center gap-2",
+          compact ? "mt-2" : "mt-3 sm:mt-4"
+        )}
+      >
+        <div className="h-px flex-1 bg-muted" />
+        <span className="font-mono text-sm text-muted-foreground">v1.0</span>
+        <div className="h-px flex-1 bg-muted" />
       </div>
     </div>
   );

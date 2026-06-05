@@ -2,14 +2,23 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
 import { AppError } from "../middlewares/error.middleware";
+import { clientFinanceLinksForRows } from "../finance/finance-client-links";
+import type { FinanceIncomeSuggestion } from "../finance/finance-income-suggestion";
+import type { GamificationFeedbackPayload } from "../gamification/feedback";
 import type { ActivityService } from "./activity.service";
 import {
   isRelationValidationError,
   syncWorkspaceRelations,
   validateRelationProperties,
 } from "../utils/database-relations";
+import { createCustomDatabase } from "../utils/create-custom-database";
 import { applyRowPoints } from "../utils/points";
 import { assertWorkspaceAccess } from "../utils/workspace-access";
+
+const createDatabaseSchema = z.object({
+  name: z.string().trim().min(1, "Nome obrigatório").max(80),
+  icon: z.string().trim().max(32).optional(),
+});
 
 const createRowSchema = z.object({
   properties: z.record(z.unknown()).optional(),
@@ -64,6 +73,10 @@ export class DatabaseService {
     private activity?: ActivityService
   ) {}
 
+  parseCreateDatabase(raw: unknown) {
+    return createDatabaseSchema.parse(raw);
+  }
+
   parseCreateRow(raw: unknown) {
     return createRowSchema.parse(raw);
   }
@@ -86,11 +99,32 @@ export class DatabaseService {
     return db;
   }
 
+  async create(
+    workspaceId: string,
+    userId: string,
+    payload: z.infer<typeof createDatabaseSchema>
+  ) {
+    await assertWorkspaceAccess(this.prisma, userId, workspaceId, "MEMBER");
+
+    const database = await createCustomDatabase(this.prisma, workspaceId, {
+      name: payload.name,
+      icon: payload.icon,
+    });
+
+    return {
+      id: database.id,
+      name: database.name,
+      icon: database.icon,
+      template: database.template,
+      updatedAt: database.updatedAt,
+    };
+  }
+
   async list(workspaceId: string, userId: string) {
     await assertWorkspaceAccess(this.prisma, userId, workspaceId, "VIEWER");
     return this.prisma.database.findMany({
       where: { workspaceId },
-      orderBy: { name: "asc" },
+      orderBy: [{ template: "asc" }, { name: "asc" }],
       select: {
         id: true,
         name: true,
@@ -168,7 +202,31 @@ export class DatabaseService {
       }));
     }
 
-    return { ...database, rowActivity };
+    let clientFinanceLinks:
+      | Record<
+          string,
+          {
+            rowId: string;
+            clientName: string;
+            movementId: string;
+            amount: number;
+            date: string;
+          }
+        >
+      | undefined;
+
+    if (database.template === "CLIENTS") {
+      const rowIds = database.rows.map((r) => r.id);
+      clientFinanceLinks = await clientFinanceLinksForRows(
+        this.prisma,
+        userId,
+        rowIds,
+        database.workspaceId,
+        database.id
+      );
+    }
+
+    return { ...database, rowActivity, clientFinanceLinks };
   }
 
   async createRow(
@@ -227,17 +285,21 @@ export class DatabaseService {
       },
     });
 
+    let gamification: GamificationFeedbackPayload | null = null;
+    let financeSuggestion: FinanceIncomeSuggestion | null = null;
     if (this.activity) {
-      await this.activity.applyRowActivity(
+      const activity = await this.activity.applyRowActivity(
         userId,
         created,
         properties,
         merged,
         defaults
       );
+      gamification = activity.gamification;
+      financeSuggestion = activity.financeSuggestion;
     }
 
-    return created;
+    return { row: created, gamification, financeSuggestion };
   }
 
   async updateRow(
@@ -321,17 +383,21 @@ export class DatabaseService {
       },
     });
 
+    let gamification: GamificationFeedbackPayload | null = null;
+    let financeSuggestion: FinanceIncomeSuggestion | null = null;
     if (payload.properties && this.activity) {
-      await this.activity.applyRowActivity(
+      const activity = await this.activity.applyRowActivity(
         userId,
         updated,
         properties,
         merged,
         current
       );
+      gamification = activity.gamification;
+      financeSuggestion = activity.financeSuggestion;
     }
 
-    return updated;
+    return { row: updated, gamification, financeSuggestion };
   }
 
   async deleteRow(rowId: string, userId: string) {

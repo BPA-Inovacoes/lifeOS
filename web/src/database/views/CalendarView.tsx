@@ -3,6 +3,7 @@ import { Calendar, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { DateInput } from "@/components/ui/date-input";
 import { DataPanel } from "@/components/DataPanel";
 import { EmptyState } from "@/components/EmptyState";
 import { ViewPanelFooter } from "@/database/components/ViewPanelFooter";
@@ -28,6 +29,7 @@ import {
   createDatabaseRow,
   updateDatabaseRow,
 } from "@/services/databaseApi";
+import { applyRowGamificationFeedback } from "@/modules/game/utils/gamificationFeedback";
 import type { DatabaseDetail } from "@/services/databaseApi";
 import type { DatabaseProperty, DatabaseRow } from "@/types/database";
 import { toast } from "@/store/toastStore";
@@ -102,6 +104,7 @@ export function CalendarView({
     }) => updateDatabaseRow(rowId, { [propId]: value }),
     onSuccess: (data) => {
       syncRows(database.rows.map((r) => (r.id === data.row.id ? data.row : r)));
+      applyRowGamificationFeedback(qc, data.gamification);
       void qc.invalidateQueries({
         queryKey: ["dashboard"],
         refetchType: "none",
@@ -135,7 +138,7 @@ export function CalendarView({
       <>
         <ViewToolbar label={VIEW_LABELS.CALENDAR} hint={viewHint("CALENDAR")} />
         <ViewRequirementNotice>
-          Adiciona uma propriedade <strong className="text-zinc-400">Data</strong>{" "}
+          Adiciona uma propriedade <strong className="text-muted-foreground">Data</strong>{" "}
           (ex.: Data limite) para usar o calendário.
         </ViewRequirementNotice>
       </>
@@ -192,7 +195,7 @@ export function CalendarView({
             type="button"
             variant="outline"
             size="sm"
-            className="font-mono text-[10px] uppercase"
+            className="font-mono text-xs uppercase"
             onClick={() => {
               const now = new Date();
               setCursor({ year: now.getFullYear(), month: now.getMonth() });
@@ -214,16 +217,16 @@ export function CalendarView({
         }
       />
 
-      <h2 className="-mt-2 mb-2 text-lg font-medium text-white">
+      <h2 className="-mt-2 mb-2 text-lg font-medium text-foreground">
         {monthLabel(cursor.year, cursor.month)}
       </h2>
 
       <DataPanel>
-        <div className="grid grid-cols-7 border-b border-zinc-800 bg-zinc-900/80">
+        <div className="grid grid-cols-7 border-b border-border bg-secondary/80">
           {weekdayHeaders().map((wd) => (
             <div
               key={wd}
-              className="px-1 py-2 text-center font-mono text-[9px] uppercase tracking-wider text-zinc-600"
+              className="px-1 py-2 text-center font-mono text-xs uppercase tracking-wider text-muted-foreground"
             >
               {wd}
             </div>
@@ -231,13 +234,13 @@ export function CalendarView({
         </div>
 
         {weeks.map((week, wi) => (
-          <div key={wi} className="grid grid-cols-7 border-b border-zinc-800/60">
+          <div key={wi} className="grid grid-cols-7 border-b border-border/60">
             {week.map((day, di) => {
               if (!day) {
                 return (
                   <div
                     key={`e-${wi}-${di}`}
-                    className="min-h-[88px] bg-zinc-950/30"
+                    className="min-h-[88px] bg-background/30"
                   />
                 );
               }
@@ -252,8 +255,8 @@ export function CalendarView({
                   key={key}
                   type="button"
                   className={cn(
-                    "min-h-[88px] border-r border-zinc-800/60 p-1.5 text-left transition-colors last:border-r-0",
-                    inMonth ? "bg-zinc-950" : "bg-zinc-950/40",
+                    "min-h-[88px] border-r border-border/60 p-1.5 text-left transition-colors last:border-r-0",
+                    inMonth ? "bg-background" : "bg-background/40",
                     selected && "ring-1 ring-inset ring-emerald-600/60",
                     isToday && "bg-emerald-950/20"
                   )}
@@ -261,8 +264,8 @@ export function CalendarView({
                 >
                   <span
                     className={cn(
-                      "font-mono text-[10px] tabular-nums",
-                      isToday ? "text-emerald-500" : "text-zinc-500"
+                      "font-mono text-xs tabular-nums",
+                      isToday ? "text-emerald-800 dark:text-emerald-500" : "text-muted-foreground"
                     )}
                   >
                     {day.getDate()}
@@ -271,13 +274,13 @@ export function CalendarView({
                     {items.slice(0, 2).map((row) => (
                       <span
                         key={row.id}
-                        className="block truncate border border-zinc-800 bg-zinc-900 px-1 py-0.5 text-[10px] text-zinc-300"
+                        className="block truncate border border-border bg-card px-1 py-0.5 text-sm text-foreground"
                       >
                         {rowTitle(database.properties, row)}
                       </span>
                     ))}
                     {items.length > 2 ? (
-                      <span className="font-mono text-[9px] text-zinc-600">
+                      <span className="font-mono text-sm text-muted-foreground">
                         +{items.length - 2}
                       </span>
                     ) : null}
@@ -292,14 +295,14 @@ export function CalendarView({
       <DataPanel
         header={
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-wider text-emerald-600/80">
+            <p className="font-mono text-xs uppercase tracking-wider text-emerald-600/80">
               {parseDateKey(selectedKey).toLocaleDateString("pt-PT", {
                 weekday: "long",
                 day: "numeric",
                 month: "long",
               })}
             </p>
-            <p className="mt-1 text-xs text-zinc-600">
+            <p className="mt-1 text-sm text-muted-foreground">
               {selectedRows.length}{" "}
               {selectedRows.length === 1 ? "tarefa" : "tarefas"} neste dia
             </p>
@@ -318,7 +321,7 @@ export function CalendarView({
         <ul className="divide-y divide-zinc-800">
           {selectedRows.length === 0 ? (
             <li className="px-4 py-6">
-              <p className="text-center text-sm text-zinc-500">
+              <p className="text-center text-sm text-muted-foreground">
                 Nenhuma tarefa neste dia.
               </p>
               <div className="mt-3 flex justify-center">
@@ -346,14 +349,14 @@ export function CalendarView({
                   key={row.id}
                   className="flex flex-wrap items-center gap-3 px-4 py-3"
                 >
-                  <span className="min-w-0 flex-1 text-sm text-zinc-200">
+                  <span className="min-w-0 flex-1 text-sm text-foreground">
                     {title}
                   </span>
                   {statusProp ? (
                     <select
                       value={status}
                       className={cn(
-                        "h-8 border bg-zinc-900 px-2 font-mono text-[10px] uppercase",
+                        "h-8 border bg-card px-2 font-mono text-xs uppercase",
                         statusBadgeClass(status)
                       )}
                       onChange={(e) =>
@@ -371,16 +374,15 @@ export function CalendarView({
                           "Concluído",
                         ]
                       ).map((opt) => (
-                        <option key={opt} value={opt} className="bg-zinc-900">
+                        <option key={opt} value={opt} className="bg-card">
                           {opt}
                         </option>
                       ))}
                     </select>
                   ) : null}
-                  <input
-                    type="date"
+                  <DateInput
                     value={selectedKey}
-                    className="lifeos-date-input h-8 min-w-0 border border-zinc-700 bg-zinc-900 pr-11 px-2 font-mono text-xs text-zinc-300"
+                    className="h-8 min-w-0 px-2"
                     onChange={(e) =>
                       patchRow.mutate({
                         rowId: row.id,
@@ -399,7 +401,7 @@ export function CalendarView({
       {unscheduled.length > 0 ? (
         <DataPanel
           header={
-            <p className="font-mono text-[10px] uppercase tracking-wider text-zinc-600">
+            <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
               Sem data ({unscheduled.length})
             </p>
           }
@@ -408,14 +410,13 @@ export function CalendarView({
             {unscheduled.map((row) => (
               <li
                 key={row.id}
-                className="flex flex-wrap items-center gap-3 border border-zinc-800 bg-zinc-900/60 px-3 py-2"
+                className="flex flex-wrap items-center gap-3 border border-border bg-card/60 px-3 py-2"
               >
-                <span className="flex-1 text-sm text-zinc-300">
+                <span className="flex-1 text-sm text-foreground">
                   {rowTitle(database.properties, row)}
                 </span>
-                <input
-                  type="date"
-                  className="lifeos-date-input h-8 min-w-0 border border-zinc-700 bg-zinc-950 pr-11 px-2 font-mono text-xs"
+                <DateInput
+                  className="h-8 min-w-0 px-2"
                   onChange={(e) => {
                     if (!e.target.value) return;
                     patchRow.mutate({
